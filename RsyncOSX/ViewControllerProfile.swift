@@ -6,77 +6,58 @@
 //  Copyright © 2016 Thomas Evensen. All rights reserved.
 //
 
-import Foundation
 import Cocoa
+import Foundation
 
 // Protocol for adding new profiles
-protocol NewProfile: class {
-    func newProfile(profile: String?)
-    func enableselectprofile()
+protocol NewProfile: AnyObject {
+    func newprofile(profile: String?, selectedindex: Int?)
+    func reloadprofilepopupbutton()
 }
 
-class ViewControllerProfile: NSViewController, SetConfigurations, SetDismisser, Delay {
-
+class ViewControllerProfile: NSViewController, SetConfigurations, Delay {
     private var profilesArray: [String]?
     private var profile: CatalogProfile?
     private var useprofile: String?
 
-    @IBOutlet weak var loadbutton: NSButton!
-    @IBOutlet weak var newprofile: NSTextField!
-    @IBOutlet weak var profilesTable: NSTableView!
+    @IBOutlet var loadbutton: NSButton!
+    @IBOutlet var newprofile: NSTextField!
+    @IBOutlet var profilesTable: NSTableView!
 
-    @IBAction func defaultProfile(_ sender: NSButton) {
-        _ = Selectprofile(profile: nil)
-        self.closeview()
+    @IBAction func closeview(_: NSButton) {
+        self.view.window?.close()
     }
 
-    @IBAction func deleteProfile(_ sender: NSButton) {
+    @IBAction func defaultProfile(_: NSButton) {
+        _ = Selectprofile(profile: nil, selectedindex: nil)
+        self.view.window?.close()
+    }
+
+    @IBAction func deleteProfile(_: NSButton) {
         if let useprofile = self.useprofile {
             self.profile?.deleteProfileDirectory(profileName: useprofile)
-            _ = Selectprofile(profile: nil)
+            _ = Selectprofile(profile: nil, selectedindex: nil)
         }
-        self.closeview()
+        self.view.window?.close()
     }
 
     // Use profile or close
-    @IBAction func close(_ sender: NSButton) {
+    @IBAction func close(_: NSButton) {
         let newprofile = self.newprofile.stringValue
         guard newprofile.isEmpty == false else {
             if self.useprofile != nil {
-                _ = Selectprofile(profile: self.useprofile)
+                _ = Selectprofile(profile: self.useprofile, selectedindex: nil)
             }
-            self.closeview()
+            self.view.window?.close()
             return
         }
-        let success = self.profile?.createProfileDirectory(profileName: newprofile)
+        let success = self.profile?.createprofilecatalog(profile: newprofile)
         guard success == true else {
-            self.closeview()
+            self.view.window?.close()
             return
         }
-        _ = Selectprofile(profile: newprofile)
-        self.closeview()
-    }
-
-    private func closeview() {
-        if (self.presentingViewController as? ViewControllerMain) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
-        } else if (self.presentingViewController as? ViewControllerSchedule) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabschedule)
-        } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcnewconfigurations)
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
-        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        } else if (self.presentingViewController as? ViewControllerSsh) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcssh)
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcverify)
-        } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcloggdata)
-        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
-        }
+        _ = Selectprofile(profile: newprofile, selectedindex: nil)
+        self.view.window?.close()
     }
 
     override func viewDidLoad() {
@@ -85,37 +66,36 @@ class ViewControllerProfile: NSViewController, SetConfigurations, SetDismisser, 
         self.profilesTable.dataSource = self
         self.profilesTable.target = self
         self.newprofile.delegate = self
-        self.profilesTable.doubleAction = #selector(ViewControllerProfile.tableViewDoubleClick(sender:))
+        self.profilesTable.doubleAction = #selector(self.tableViewDoubleClick(sender:))
     }
 
     override func viewDidAppear() {
         super.viewDidAppear()
         self.profile = CatalogProfile()
-        self.profilesArray = self.profile!.getDirectorysStrings()
-        globalMainQueue.async(execute: { () -> Void in
+        self.profilesArray = self.profile?.getcatalogsasstringnames()
+        globalMainQueue.async { () -> Void in
             self.profilesTable.reloadData()
-        })
+        }
         self.newprofile.stringValue = ""
     }
 
-    @objc(tableViewDoubleClick:) func tableViewDoubleClick(sender: AnyObject) {
-        _ = Selectprofile(profile: self.useprofile)
-        self.closeview()
+    @objc(tableViewDoubleClick:) func tableViewDoubleClick(sender _: AnyObject) {
+        _ = Selectprofile(profile: self.useprofile, selectedindex: nil)
+        self.view.window?.close()
     }
 }
 
 extension ViewControllerProfile: NSTableViewDataSource {
-
-    func numberOfRows(in tableViewMaster: NSTableView) -> Int {
+    func numberOfRows(in _: NSTableView) -> Int {
         return self.profilesArray?.count ?? 0
     }
 }
 
 extension ViewControllerProfile: NSTableViewDelegate {
-
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func tableView(_ tableView: NSTableView, viewFor _: NSTableColumn?, row: Int) -> NSView? {
         if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "profilesID"),
-                                         owner: self) as? NSTableCellView {
+                                         owner: self) as? NSTableCellView
+        {
             cell.textField?.stringValue = self.profilesArray?[row] ?? ""
             return cell
         } else {
@@ -133,12 +113,12 @@ extension ViewControllerProfile: NSTableViewDelegate {
 }
 
 extension ViewControllerProfile: NSTextFieldDelegate {
-    func controlTextDidChange(_ notification: Notification) {
+    func controlTextDidChange(_: Notification) {
         self.delayWithSeconds(0.5) {
             if self.newprofile.stringValue.count > 0 {
-                self.loadbutton.title = NSLocalizedString("Save", comment: "Profile")
+                self.loadbutton.title = NSLocalizedString("Save", comment: DictionaryStrings.profile.rawValue)
             } else {
-                self.loadbutton.title = NSLocalizedString("Load", comment: "Profile")
+                self.loadbutton.title = NSLocalizedString("Load", comment: DictionaryStrings.profile.rawValue)
             }
         }
     }

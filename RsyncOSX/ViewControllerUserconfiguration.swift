@@ -5,46 +5,124 @@
 //  Created by Thomas Evensen on 30/08/2016.
 //  Copyright © 2016 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable line_length type_body_length cyclomatic_complexity
+// swiftlint:disable line_length type_body_length cyclomatic_complexity file_length function_body_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-protocol MenuappChanged: class {
+protocol MenuappChanged: AnyObject {
     func menuappchanged()
 }
 
-class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser, Delay, ChangeTemporaryRestorePath {
-
+class ViewControllerUserconfiguration: NSViewController, NewRsync, Delay, ChangeTemporaryRestorePath {
     var dirty: Bool = false
-    weak var reloadconfigurationsDelegate: Createandreloadconfigurations?
+    weak var reloadconfigurationsDelegate: GetConfigurationsObject?
+    weak var reloadschedulesDelegate: GetSchedulesObject?
     weak var menuappDelegate: MenuappChanged?
+    weak var loadsshparametersDelegate: Loadsshparameters?
     var oldmarknumberofdayssince: Double?
     var reload: Bool = false
+    var nameandpaths: NamesandPaths?
+    var jsonischanged: Bool = false
 
-    @IBOutlet weak var rsyncPath: NSTextField!
-    @IBOutlet weak var version3rsync: NSButton!
-    @IBOutlet weak var detailedlogging: NSButton!
-    @IBOutlet weak var noRsync: NSTextField!
-    @IBOutlet weak var restorePath: NSTextField!
-    @IBOutlet weak var fulllogging: NSButton!
-    @IBOutlet weak var minimumlogging: NSButton!
-    @IBOutlet weak var nologging: NSButton!
-    @IBOutlet weak var marknumberofdayssince: NSTextField!
-    @IBOutlet weak var pathRsyncOSX: NSTextField!
-    @IBOutlet weak var pathRsyncOSXsched: NSTextField!
-    @IBOutlet weak var statuslightpathrsync: NSImageView!
-    @IBOutlet weak var statuslighttemppath: NSImageView!
-    @IBOutlet weak var statuslightpathrsyncosx: NSImageView!
-    @IBOutlet weak var statuslightpathrsyncosxsched: NSImageView!
-    @IBOutlet weak var savebutton: NSButton!
-    @IBOutlet weak var automaticexecutelocalvolumes: NSButton!
-    @IBOutlet weak var environment: NSTextField!
-    @IBOutlet weak var environmentvalue: NSTextField!
-    @IBOutlet weak var enableenvironment: NSButton!
-    @IBOutlet weak var togglecheckdatabutton: NSButton!
+    @IBOutlet var rsyncPath: NSTextField!
+    @IBOutlet var version3rsync: NSButton!
+    @IBOutlet var detailedlogging: NSButton!
+    @IBOutlet var noRsync: NSTextField!
+    @IBOutlet var restorePath: NSTextField!
+    @IBOutlet var fulllogging: NSButton!
+    @IBOutlet var minimumlogging: NSButton!
+    @IBOutlet var nologging: NSButton!
+    @IBOutlet var marknumberofdayssince: NSTextField!
+    @IBOutlet var pathRsyncOSX: NSTextField!
+    @IBOutlet var pathRsyncOSXsched: NSTextField!
+    @IBOutlet var statuslightpathrsync: NSImageView!
+    @IBOutlet var statuslighttemppath: NSImageView!
+    @IBOutlet var statuslightpathrsyncosx: NSImageView!
+    @IBOutlet var statuslightpathrsyncosxsched: NSImageView!
+    @IBOutlet var savebutton: NSButton!
+    @IBOutlet var environment: NSTextField!
+    @IBOutlet var environmentvalue: NSTextField!
+    @IBOutlet var enableenvironment: NSButton!
+    @IBOutlet var togglecheckdatabutton: NSButton!
+    @IBOutlet var haltonerror: NSButton!
+    @IBOutlet var sshport: NSTextField!
+    @IBOutlet var sshkeypathandidentityfile: NSTextField!
+    @IBOutlet var statuslightsshkeypath: NSImageView!
+    @IBOutlet var monitornetworkconnection: NSButton!
+    @IBOutlet var json: NSSwitch!
+    @IBOutlet var jsonlabel: NSTextField!
 
-    @IBAction func togglecheckdata(_ sender: NSButton) {
+    @IBAction func enablejson(_: NSButton) {
+        var question: String?
+        var checked = false
+
+        var verifyjson: VerifyJSON?
+        if let profile = self.reloadconfigurationsDelegate?.getconfigurationsobject()?.profile {
+            verifyjson = VerifyJSON(profile: profile)
+        } else {
+            verifyjson = VerifyJSON(profile: nil)
+        }
+        if self.json.state == .on { self.jsonlabel.stringValue = "JSON" } else { self.jsonlabel.stringValue = "PLIST" }
+        if verifyjson?.verifyconf == true, verifyjson?.verifysched == true {
+            checked = true
+        } else {
+            question = NSLocalizedString("New format is not equal to current.", comment: "Userconfig")
+            let text: String = NSLocalizedString("Cancel or Continue?", comment: "Userconfig")
+            let dialog: String = NSLocalizedString("Continue", comment: "Userconfig")
+            let answer = Alerts.dialogOrCancel(question: question ?? "", text: text, dialog: dialog)
+            if answer {
+                checked = true
+            }
+        }
+        if self.json.state == .on {
+            ViewControllerReference.shared.json = true
+            question = NSLocalizedString("Format of config files is about to be changed to JSON.", comment: "Userconfig")
+        } else {
+            ViewControllerReference.shared.json = false
+            question = NSLocalizedString("Format of config files is about to be changed to PLIST.", comment: "Userconfig")
+        }
+        if self.jsonischanged != ViewControllerReference.shared.json, checked == true {
+            let text: String = NSLocalizedString("Cancel or Reboot?", comment: "Userconfig")
+            let dialog: String = NSLocalizedString("Reboot", comment: "Userconfig")
+            let answer = Alerts.dialogOrCancel(question: question ?? "", text: text, dialog: dialog)
+            if answer {
+                PersistentStorageUserconfiguration().saveuserconfiguration()
+                NSApp.terminate(self)
+            }
+        }
+        ViewControllerReference.shared.json = self.jsonischanged
+        if self.jsonischanged {
+            self.json.state = .on
+        } else {
+            self.json.state = .off
+            ViewControllerReference.shared.json = self.jsonischanged
+            if self.jsonischanged {
+                self.json.state = .on
+            } else {
+                self.json.state = .off
+            }
+        }
+        if self.json.state == .on { self.jsonlabel.stringValue = "JSON" } else { self.jsonlabel.stringValue = "PLIST" }
+    }
+
+    @IBAction func copyconfigfiles(_: NSButton) {
+        _ = Backupconfigfiles()
+        self.view.window?.close()
+    }
+
+    @IBAction func togglehaltonerror(_: NSButton) {
+        if ViewControllerReference.shared.haltonerror {
+            self.haltonerror.state = .off
+            ViewControllerReference.shared.haltonerror = false
+        } else {
+            self.haltonerror.state = .on
+            ViewControllerReference.shared.haltonerror = true
+        }
+        self.setdirty()
+    }
+
+    @IBAction func togglecheckdata(_: NSButton) {
         if ViewControllerReference.shared.checkinput {
             self.togglecheckdatabutton.state = .off
             ViewControllerReference.shared.checkinput = false
@@ -54,7 +132,7 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         }
     }
 
-    @IBAction func toggleenableenvironment(_ sender: NSButton) {
+    @IBAction func toggleenableenvironment(_: NSButton) {
         switch self.enableenvironment.state {
         case .on:
             self.environment.isEnabled = true
@@ -65,18 +143,10 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         default:
             return
         }
-    }
-
-    @IBAction func toggleautomaticexecutelocalvolumes(_ sender: NSButton) {
-        if automaticexecutelocalvolumes.state == .on {
-            ViewControllerReference.shared.automaticexecutelocalvolumes = true
-        } else {
-            ViewControllerReference.shared.automaticexecutelocalvolumes = false
-        }
         self.setdirty()
     }
 
-    @IBAction func toggleversion3rsync(_ sender: NSButton) {
+    @IBAction func toggleversion3rsync(_: NSButton) {
         if self.version3rsync.state == .on {
             ViewControllerReference.shared.rsyncversion3 = true
             if self.rsyncPath.stringValue == "" {
@@ -92,7 +162,7 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         self.verifyrsync()
     }
 
-    @IBAction func toggleDetailedlogging(_ sender: NSButton) {
+    @IBAction func toggleDetailedlogging(_: NSButton) {
         if self.detailedlogging.state == .on {
             ViewControllerReference.shared.detailedlogging = true
         } else {
@@ -101,44 +171,39 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         self.setdirty()
     }
 
-    @IBAction func close(_ sender: NSButton) {
+    @IBAction func togglemonitornetworkconnection(_: NSButton) {
+        if self.monitornetworkconnection.state == .on {
+            ViewControllerReference.shared.monitornetworkconnection = true
+        } else {
+            ViewControllerReference.shared.monitornetworkconnection = false
+        }
+        self.setdirty()
+    }
+
+    @IBAction func close(_: NSButton) {
         if self.dirty {
             // Before closing save changed configuration
             _ = Setrsyncpath(path: self.rsyncPath.stringValue)
             self.setRestorePath()
             self.setmarknumberofdayssince()
             self.setEnvironment()
-            _ = PersistentStorageUserconfiguration().saveuserconfiguration()
+            self.setsshparameters()
+            PersistentStorageUserconfiguration().saveuserconfiguration()
             if self.reload {
-                self.reloadconfigurationsDelegate?.createandreloadconfigurations()
+                self.reloadconfigurationsDelegate?.reloadconfigurationsobject()
+                self.reloadschedulesDelegate?.reloadschedulesobject()
             }
-            self.menuappDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+            self.menuappDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsidebar) as? ViewControllerSideBar
+            self.loadsshparametersDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcssh) as? ViewControllerSsh
             self.menuappDelegate?.menuappchanged()
+            self.loadsshparametersDelegate?.loadsshparameters()
             self.changetemporaryrestorepath()
         }
-        if (self.presentingViewController as? ViewControllerMain) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
-        } else if (self.presentingViewController as? ViewControllerSchedule) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabschedule)
-        } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcnewconfigurations)
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
-        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        } else if (self.presentingViewController as? ViewControllerSsh) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcssh)
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcverify)
-        } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcloggdata)
-        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
-        }
+        self.view.window?.close()
         _ = RsyncVersionString()
     }
 
-    @IBAction func logging(_ sender: NSButton) {
+    @IBAction func logging(_: NSButton) {
         if self.fulllogging.state == .on {
             ViewControllerReference.shared.fulllogging = true
             ViewControllerReference.shared.minimumlogging = false
@@ -149,7 +214,7 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
             ViewControllerReference.shared.fulllogging = false
             ViewControllerReference.shared.minimumlogging = false
         }
-         self.setdirty()
+        self.setdirty()
     }
 
     private func setdirty() {
@@ -171,12 +236,12 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         if self.restorePath.stringValue.isEmpty == false {
             if restorePath.stringValue.hasSuffix("/") == false {
                 restorePath.stringValue += "/"
-                ViewControllerReference.shared.restorePath = restorePath.stringValue
+                ViewControllerReference.shared.temporarypathforrestore = restorePath.stringValue
             } else {
-                ViewControllerReference.shared.restorePath = restorePath.stringValue
+                ViewControllerReference.shared.temporarypathforrestore = restorePath.stringValue
             }
         } else {
-            ViewControllerReference.shared.restorePath = nil
+            ViewControllerReference.shared.temporarypathforrestore = nil
         }
         self.setdirty()
     }
@@ -195,6 +260,16 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
     private func verifyrsync() {
         var rsyncpath: String?
         if self.rsyncPath.stringValue.isEmpty == false {
+            if self.rsyncPath.stringValue.contains("$HOME") {
+                let replaced = self.rsyncPath.stringValue.replacingOccurrences(of: "$HOME",
+                                                                               with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+                self.rsyncPath.stringValue = replaced
+            }
+            if self.rsyncPath.stringValue.contains("$home") {
+                let replaced = self.rsyncPath.stringValue.replacingOccurrences(of: "$home",
+                                                                               with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+                self.rsyncPath.stringValue = replaced
+            }
             self.statuslightpathrsync.isHidden = false
             if self.rsyncPath.stringValue.hasSuffix("/") == false {
                 rsyncpath = self.rsyncPath.stringValue + "/" + ViewControllerReference.shared.rsync
@@ -228,6 +303,16 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
             self.nopathtorsyncosx()
             return
         }
+        if self.pathRsyncOSX.stringValue.contains("$HOME") {
+            let replaced = self.pathRsyncOSX.stringValue.replacingOccurrences(of: "$HOME",
+                                                                              with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+            self.pathRsyncOSX.stringValue = replaced
+        }
+        if self.pathRsyncOSX.stringValue.contains("$home") {
+            let replaced = self.pathRsyncOSX.stringValue.replacingOccurrences(of: "$home",
+                                                                              with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+            self.pathRsyncOSX.stringValue = replaced
+        }
         if self.pathRsyncOSX.stringValue.hasSuffix("/") == false {
             pathtorsyncosx = self.pathRsyncOSX.stringValue + "/"
         } else {
@@ -247,6 +332,16 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         guard self.pathRsyncOSXsched.stringValue.isEmpty == false else {
             self.nopathtorsyncossched()
             return
+        }
+        if self.pathRsyncOSXsched.stringValue.contains("$HOME") {
+            let replaced = self.pathRsyncOSXsched.stringValue.replacingOccurrences(of: "$HOME",
+                                                                                   with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+            self.pathRsyncOSXsched.stringValue = replaced
+        }
+        if self.pathRsyncOSXsched.stringValue.contains("$home") {
+            let replaced = self.pathRsyncOSXsched.stringValue.replacingOccurrences(of: "$home",
+                                                                                   with: self.nameandpaths?.userHomeDirectoryPath ?? "")
+            self.pathRsyncOSXsched.stringValue = replaced
         }
         if self.pathRsyncOSXsched.stringValue.hasSuffix("/") == false {
             pathtorsyncosxsched = self.pathRsyncOSXsched.stringValue + "/"
@@ -283,6 +378,68 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         return true
     }
 
+    private func verifysshkeypath() {
+        self.statuslightsshkeypath.isHidden = false
+        if self.sshkeypathandidentityfile.stringValue.first != "~" {
+            let tempsshkeypath = self.sshkeypathandidentityfile.stringValue
+            if tempsshkeypath.count > 1 {
+                self.sshkeypathandidentityfile.stringValue = "~" + tempsshkeypath
+            }
+        }
+        let tempsshkeypath = self.sshkeypathandidentityfile.stringValue
+        let sshkeypathandidentityfilesplit = tempsshkeypath.split(separator: "/")
+        if sshkeypathandidentityfilesplit.count > 2 {
+            guard sshkeypathandidentityfilesplit[1].count > 1 else {
+                self.statuslightsshkeypath.image = #imageLiteral(resourceName: "red")
+                return
+            }
+            guard sshkeypathandidentityfilesplit[2].count > 1 else {
+                self.statuslightsshkeypath.image = #imageLiteral(resourceName: "red")
+                return
+            }
+            self.statuslightsshkeypath.image = #imageLiteral(resourceName: "green")
+        } else {
+            self.statuslightsshkeypath.image = #imageLiteral(resourceName: "red")
+        }
+    }
+
+    private func checksshkeypathbeforesaving() -> Bool {
+        if self.sshkeypathandidentityfile.stringValue.first != "~" { return false }
+        let tempsshkeypath = self.sshkeypathandidentityfile.stringValue
+        let sshkeypathandidentityfilesplit = tempsshkeypath.split(separator: "/")
+        guard sshkeypathandidentityfilesplit.count > 2 else { return false }
+        guard sshkeypathandidentityfilesplit[1].count > 1 else { return false }
+        guard sshkeypathandidentityfilesplit[2].count > 1 else { return false }
+        return true
+    }
+
+    private func setsshparameters() {
+        if self.sshkeypathandidentityfile.stringValue.isEmpty == false {
+            guard self.checksshkeypathbeforesaving() == true else { return }
+            ViewControllerReference.shared.sshkeypathandidentityfile = self.sshkeypathandidentityfile.stringValue
+        } else {
+            ViewControllerReference.shared.sshkeypathandidentityfile = nil
+        }
+        if self.sshport.stringValue.isEmpty == false {
+            if let port = self.sshport {
+                ViewControllerReference.shared.sshport = Int(port.stringValue)
+            }
+        } else {
+            ViewControllerReference.shared.sshport = nil
+        }
+        self.reload = true
+    }
+
+    private func setjson() {
+        if ViewControllerReference.shared.json {
+            self.jsonlabel.stringValue = "JSON"
+            self.json.state = .on
+        } else {
+            self.jsonlabel.stringValue = "PLIST"
+            self.json.state = .off
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.rsyncPath.delegate = self
@@ -291,33 +448,34 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         self.pathRsyncOSX.delegate = self
         self.pathRsyncOSXsched.delegate = self
         self.environment.delegate = self
+        self.sshkeypathandidentityfile.delegate = self
+        self.sshport.delegate = self
         self.nologging.state = .on
         self.reloadconfigurationsDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        self.reloadschedulesDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        self.nameandpaths = NamesandPaths(profileorsshrootpath: .profileroot)
     }
 
     override func viewDidAppear() {
         super.viewDidAppear()
         self.dirty = false
-        self.checkUserConfig()
-        self.verifyrsync()
         self.marknumberofdayssince.stringValue = String(ViewControllerReference.shared.marknumberofdayssince)
         self.reload = false
         self.pathRsyncOSXsched.stringValue = ViewControllerReference.shared.pathrsyncosxsched ?? ""
         self.pathRsyncOSX.stringValue = ViewControllerReference.shared.pathrsyncosx ?? ""
+        self.sshkeypathandidentityfile.stringValue = ViewControllerReference.shared.sshkeypathandidentityfile ?? ""
+        if let sshport = ViewControllerReference.shared.sshport {
+            self.sshport.stringValue = String(sshport)
+        }
+        self.checkUserConfig()
+        self.verifyrsync()
+        self.setjson()
         self.statuslighttemppath.isHidden = true
         self.statuslightpathrsync.isHidden = true
         self.statuslightpathrsyncosx.isHidden = true
         self.statuslightpathrsyncosxsched.isHidden = true
-        if ViewControllerReference.shared.automaticexecutelocalvolumes {
-            self.automaticexecutelocalvolumes.state = .on
-        } else {
-            self.automaticexecutelocalvolumes.state = .off
-        }
-        if ViewControllerReference.shared.checkinput {
-            self.togglecheckdatabutton.state = .on
-        } else {
-            self.togglecheckdatabutton.state = .off
-        }
+        self.statuslightsshkeypath.isHidden = true
+        self.jsonischanged = ViewControllerReference.shared.json
     }
 
     // Function for check and set user configuration
@@ -337,8 +495,8 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         } else {
             self.rsyncPath.stringValue = ""
         }
-        if ViewControllerReference.shared.restorePath != nil {
-            self.restorePath.stringValue = ViewControllerReference.shared.restorePath!
+        if ViewControllerReference.shared.temporarypathforrestore != nil {
+            self.restorePath.stringValue = ViewControllerReference.shared.temporarypathforrestore!
         } else {
             self.restorePath.stringValue = ""
         }
@@ -358,11 +516,25 @@ class ViewControllerUserconfiguration: NSViewController, NewRsync, SetDismisser,
         } else {
             self.environmentvalue.stringValue = ""
         }
+        if ViewControllerReference.shared.checkinput {
+            self.togglecheckdatabutton.state = .on
+        } else {
+            self.togglecheckdatabutton.state = .off
+        }
+        if ViewControllerReference.shared.haltonerror {
+            self.haltonerror.state = .on
+        } else {
+            self.haltonerror.state = .off
+        }
+        if ViewControllerReference.shared.monitornetworkconnection {
+            self.monitornetworkconnection.state = .on
+        } else {
+            self.monitornetworkconnection.state = .off
+        }
     }
 }
 
 extension ViewControllerUserconfiguration: NSTextFieldDelegate {
-
     func controlTextDidChange(_ notification: Notification) {
         delayWithSeconds(0.5) {
             self.setdirty()
@@ -384,6 +556,10 @@ extension ViewControllerUserconfiguration: NSTextFieldDelegate {
             case self.pathRsyncOSXsched:
                 self.verifypathtorsyncsched()
                 self.verifypathtorsyncosx()
+            case self.sshkeypathandidentityfile:
+                self.verifysshkeypath()
+            case self.sshport:
+                return
             case self.environment:
                 return
             default:

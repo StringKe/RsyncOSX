@@ -5,16 +5,16 @@
 //  Created by Thomas Evensen on 31.05.2018.
 //  Copyright © 2018 Thomas Evensen. All rights reserved.
 //
-//  swiftlint:disable file_length line_length
+//  swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
 // Get output from rsync command
 extension ViewControllerMain: GetOutput {
     // Get information from rsync output.
     func getoutput() -> [String] {
-         return (self.outputprocess?.trimoutput(trim: .two)) ?? []
+        return (self.outputprocess?.trimoutput(trim: .two)) ?? []
     }
 }
 
@@ -22,16 +22,9 @@ extension ViewControllerMain: GetOutput {
 extension ViewControllerMain: Reloadandrefresh {
     // Refresh tableView in main
     func reloadtabledata() {
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.mainTableView.reloadData()
-        })
-    }
-}
-
-// Parameters to rsync is changed
-extension ViewControllerMain: RsyncUserParams {
-    func rsyncuserparamsupdated() {
-        self.showrsynccommandmainview()
+        }
     }
 }
 
@@ -45,9 +38,14 @@ extension ViewControllerMain: GetSelecetedIndex {
 // New profile is loaded.
 extension ViewControllerMain: NewProfile {
     // Function is called from profiles when new or default profiles is seleceted
-    func newProfile(profile: String?) {
+    func newprofile(profile: String?, selectedindex: Int?) {
+        if let index = selectedindex {
+            self.profilepopupbutton.selectItem(at: index)
+        } else {
+            self.initpopupbutton()
+        }
         self.reset()
-        self.showrsynccommandmainview()
+        self.singletask = nil
         self.deselect()
         // Read configurations and Scheduledata
         self.configurations = self.createconfigurationsobject(profile: profile)
@@ -61,17 +59,29 @@ extension ViewControllerMain: NewProfile {
         self.reloadtable(vcontroller: .vcsnapshot)
     }
 
-    func enableselectprofile() {
-        globalMainQueue.async(execute: { () -> Void in
+    func reloadprofilepopupbutton() {
+        globalMainQueue.async { () -> Void in
             self.displayProfile()
-        })
+        }
+    }
+
+    func createschedulesobject(profile: String?) -> Schedules? {
+        self.schedules = nil
+        self.schedules = Schedules(profile: profile)
+        self.schedulesortedandexpanded = ScheduleSortedAndExpand()
+        return self.schedules
+    }
+
+    func createconfigurationsobject(profile: String?) -> Configurations? {
+        self.configurations = nil
+        self.configurations = Configurations(profile: profile)
+        return self.configurations
     }
 }
 
 // Rsync path is changed, update displayed rsync command
 extension ViewControllerMain: RsyncIsChanged {
     func rsyncischanged() {
-        self.showrsynccommandmainview()
         self.setinfoaboutrsync()
     }
 }
@@ -79,27 +89,27 @@ extension ViewControllerMain: RsyncIsChanged {
 // Check for remote connections, reload table when completed.
 extension ViewControllerMain: Connections {
     func displayConnections() {
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.mainTableView.reloadData()
-        })
+        }
     }
 }
 
 extension ViewControllerMain: NewVersionDiscovered {
     func notifyNewVersion() {
-        globalMainQueue.async(execute: { () -> Void in
-           self.info.stringValue = Infoexecute().info(num: 9)
-        })
+        globalMainQueue.async { () -> Void in
+            self.info.stringValue = Infoexecute().info(num: 9)
+        }
     }
 }
 
 extension ViewControllerMain: DismissViewController {
     func dismiss_view(viewcontroller: NSViewController) {
         self.dismiss(viewcontroller)
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.mainTableView.reloadData()
             self.displayProfile()
-        })
+        }
         self.setinfoaboutrsync()
     }
 }
@@ -108,8 +118,11 @@ extension ViewControllerMain: DismissViewController {
 extension ViewControllerMain: DeselectRowTable {
     // deselect a row after row is deleted
     func deselect() {
-        guard self.index != nil else { return }
-        self.mainTableView.deselectRow(self.index!)
+        if let index = self.index {
+            ViewControllerReference.shared.process = nil
+            self.index = nil
+            self.mainTableView.deselectRow(index)
+        }
     }
 }
 
@@ -117,73 +130,61 @@ extension ViewControllerMain: DeselectRowTable {
 extension ViewControllerMain: RsyncError {
     func rsyncerror() {
         // Set on or off in user configuration
-        globalMainQueue.async(execute: { () -> Void in
-            self.seterrorinfo(info: "Error")
-            self.showrsynccommandmainview()
+        globalMainQueue.async { () -> Void in
+            self.seterrorinfo(info: "Rsync error")
+            self.info.stringValue = "See loggfile..."
+            guard ViewControllerReference.shared.haltonerror == true else { return }
             self.deselect()
-            // Abort any operations
-            if let process = self.process {
-                process.terminate()
-                self.process = nil
-            }
+            _ = InterruptProcess()
             self.singletask?.error()
-        })
+        }
     }
 }
 
 // If, for any reason, handling files or directory throws an error
 extension ViewControllerMain: Fileerror {
-    func errormessage(errorstr: String, errortype: Fileerrortype ) {
-        globalMainQueue.async(execute: { () -> Void in
-            if errortype == .openlogfile {
-                self.rsyncCommand.stringValue = self.errordescription(errortype: errortype)
-            } else if errortype == .filesize {
-                self.rsyncCommand.stringValue = self.errordescription(errortype: errortype) + ": filesize = " + errorstr
-            } else {
-                self.seterrorinfo(info: "Error")
-                self.rsyncCommand.stringValue = self.errordescription(errortype: errortype) + "\n" + errorstr
+    func errormessage(errorstr: String, errortype: Fileerrortype) {
+        globalMainQueue.async { () -> Void in
+            if self.outputprocess == nil {
+                self.outputprocess = OutputProcess()
             }
-        })
+            if errortype == .filesize {
+                self.seterrorinfo(info: "Logfile size big")
+                self.info.stringValue = "Size logfile is big, filesize: " + errorstr
+            } else {
+                self.seterrorinfo(info: "Some error")
+                self.outputprocess?.addlinefromoutput(str: self.errordescription(errortype: errortype) + "\n" + errorstr)
+                self.info.stringValue = "Error: see loggfile..."
+            }
+            guard errortype != .filesize else { return }
+            _ = Logging(self.outputprocess, true)
+        }
     }
 }
 
 // Abort task from progressview
 extension ViewControllerMain: Abort {
-    // Abort any task
+    // Abort the task
     func abortOperations() {
-        // Terminates the running process
-        if let process = self.process {
-            process.terminate()
-            self.process = nil
-            self.seterrorinfo(info: "Abort")
-            self.rsyncCommand.stringValue = ""
-            if self.configurations!.remoteinfoestimation != nil && self.configurations?.estimatedlist != nil {
-                self.configurations!.remoteinfoestimation = nil
-            }
-        } else {
-            self.rsyncCommand.stringValue = NSLocalizedString("Selection out of range - aborting", comment: "Execute")
-        }
+        _ = InterruptProcess()
         self.working.stopAnimation(nil)
-        self.workinglabel.isHidden = true
-        self.process = nil
         self.index = nil
+        self.info.stringValue = ""
     }
 }
 
-// Extensions from here are used in either newSingleTask or newBatchTask
-
+// Extensions from here are used in newSingleTask
 extension ViewControllerMain: StartStopProgressIndicatorSingleTask {
     func startIndicatorExecuteTaskNow() {
-         self.working.startAnimation(nil)
+        self.working.startAnimation(nil)
     }
+
     func startIndicator() {
         self.working.startAnimation(nil)
-        self.workinglabel.isHidden = false
     }
 
     func stopIndicator() {
         self.working.stopAnimation(nil)
-        self.workinglabel.isHidden = true
     }
 }
 
@@ -193,22 +194,8 @@ extension ViewControllerMain: GetConfigurationsObject {
         return self.configurations
     }
 
-    func createconfigurationsobject(profile: String?) -> Configurations? {
-        self.configurations = nil
-        self.configurations = Configurations(profile: profile)
-        return self.configurations
-    }
-
     // After a write, a reload is forced.
     func reloadconfigurationsobject() {
-        guard self.configurations?.batchQueue == nil else {
-            if self.configurations!.batchQueue?.batchruniscompleted() == true {
-                self.createandreloadconfigurations()
-                return
-            } else {
-                return
-            }
-        }
         self.createandreloadconfigurations()
     }
 
@@ -219,25 +206,10 @@ extension ViewControllerMain: GetConfigurationsObject {
 
 extension ViewControllerMain: GetSchedulesObject {
     func reloadschedulesobject() {
-        guard self.configurations?.batchQueue == nil else {
-            if self.configurations!.batchQueue?.batchruniscompleted() == true {
-                self.createandreloadschedules()
-                return
-            } else {
-                return
-            }
-        }
         self.createandreloadschedules()
     }
 
     func getschedulesobject() -> Schedules? {
-        return self.schedules
-    }
-
-    func createschedulesobject(profile: String?) -> Schedules? {
-        self.schedules = nil
-        self.schedules = Schedules(profile: profile)
-        self.schedulesortedandexpanded = ScheduleSortedAndExpand()
         return self.schedules
     }
 }
@@ -258,35 +230,17 @@ extension ViewControllerMain: ErrorOutput {
     }
 }
 
-extension ViewControllerMain: Createandreloadconfigurations {
-    // func reateandreloadconfigurations()
-}
-
-extension ViewControllerMain: SendProcessreference {
+extension ViewControllerMain: SendOutputProcessreference {
     func sendoutputprocessreference(outputprocess: OutputProcess?) {
         self.outputprocess = outputprocess
-    }
-
-    func sendprocessreference(process: Process?) {
-        self.process = process
-    }
-}
-
-extension ViewControllerMain: SetRemoteInfo {
-    func getremoteinfo() -> RemoteinfoEstimation? {
-        return self.configurations!.remoteinfoestimation
-    }
-
-    func setremoteinfo(remoteinfotask: RemoteinfoEstimation?) {
-        self.configurations!.remoteinfoestimation = remoteinfotask
     }
 }
 
 extension ViewControllerMain: OpenQuickBackup {
     func openquickbackup() {
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.presentAsSheet(self.viewControllerQuickBackup!)
-        })
+        }
     }
 }
 
@@ -300,54 +254,7 @@ extension ViewControllerMain: Count {
     }
 }
 
-extension ViewControllerMain: MenuappChanged {
-    func menuappchanged() {
-        self.enablemenuappbutton()
-    }
-}
-
-extension ViewControllerMain: SetLocalRemoteInfo {
-    func getlocalremoteinfo(index: Int) -> [NSDictionary]? {
-        guard self.configurations?.localremote != nil else { return nil }
-        if let info = self.configurations?.localremote?.filter({($0.value(forKey: "index") as? Int)! == index}) {
-            return info
-        } else {
-            return nil
-        }
-    }
-
-    func setlocalremoteinfo(info: NSMutableDictionary?) {
-        guard info != nil else { return }
-        if self.configurations?.localremote == nil {
-            self.configurations?.localremote = [NSMutableDictionary]()
-            self.configurations?.localremote!.append(info!)
-        } else {
-            self.configurations?.localremote!.append(info!)
-        }
-    }
-}
-
-extension ViewControllerMain: Allerrors {
-    func allerrors(outputprocess: OutputProcess?) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.seterrorinfo(info: "Error")
-        })
-        self.outputprocess = nil
-        if self.outputerrors == nil {
-            self.outputerrors = OutputErrors()
-        }
-        for i in 0 ..< (outputprocess?.getOutput()?.count ?? 0) {
-            self.outputerrors!.addLine(str: outputprocess!.getOutput()![i])
-        }
-    }
-
-    func getoutputerrors() -> OutputErrors? {
-        return self.outputerrors
-    }
-}
-
 extension ViewControllerMain: ViewOutputDetails {
-
     func getalloutput() -> [String] {
         return self.outputprocess?.getrawOutput() ?? []
     }
@@ -374,17 +281,13 @@ enum Color {
     case black
 }
 
-protocol Setcolor: class {
+protocol Setcolor: AnyObject {
     func setcolor(nsviewcontroller: NSViewController, color: Color) -> NSColor
 }
 
 extension Setcolor {
-
     private func isDarkMode(view: NSView) -> Bool {
-        if #available(OSX 10.14, *) {
-            return view.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        }
-        return false
+        return view.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
     }
 
     func setcolor(nsviewcontroller: NSViewController, color: Color) -> NSColor {
@@ -414,7 +317,7 @@ extension Setcolor {
     }
 }
 
-protocol Checkforrsync: class {
+protocol Checkforrsync: AnyObject {
     func checkforrsync() -> Bool
 }
 
@@ -430,21 +333,68 @@ extension Checkforrsync {
 }
 
 // Protocol for start,stop, complete progressviewindicator
-protocol StartStopProgressIndicator: class {
+protocol StartStopProgressIndicator: AnyObject {
     func start()
     func stop()
-    func complete()
 }
 
 // Protocol for either completion of work or update progress when Process discovers a
 // process termination and when filehandler discover data
-protocol UpdateProgress: class {
+protocol UpdateProgress: AnyObject {
     func processTermination()
     func fileHandler()
 }
 
-protocol ViewOutputDetails: class {
+protocol ViewOutputDetails: AnyObject {
     func reloadtable()
     func appendnow() -> Bool
     func getalloutput() -> [String]
+}
+
+// Get multiple selected indexes
+protocol GetMultipleSelectedIndexes: AnyObject {
+    func getindexes() -> [Int]
+    func multipleselection() -> Bool
+}
+
+extension ViewControllerMain: GetMultipleSelectedIndexes {
+    func multipleselection() -> Bool {
+        return self.multipeselection
+    }
+
+    func getindexes() -> [Int] {
+        if let indexes = self.indexes {
+            return indexes.map { $0 }
+        } else {
+            return []
+        }
+    }
+}
+
+extension ViewControllerMain: DeinitExecuteTaskNow {
+    func deinitexecutetasknow() {
+        self.executetasknow = nil
+        self.info.stringValue = Infoexecute().info(num: 0)
+    }
+}
+
+extension ViewControllerMain: DisableEnablePopupSelectProfile {
+    func enableselectpopupprofile() {
+        self.profilepopupbutton.isEnabled = true
+    }
+
+    func disableselectpopupprofile() {
+        self.profilepopupbutton.isEnabled = false
+    }
+}
+
+extension ViewControllerMain: Sidebarbuttonactions {
+    func sidebarbuttonactions(action: Sidebaractionsmessages) {
+        switch action {
+        case .Delete:
+            self.delete()
+        default:
+            return
+        }
+    }
 }

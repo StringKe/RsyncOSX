@@ -7,31 +7,30 @@
 //
 // swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
 class Allschedules {
-
     private var allschedules: [ConfigurationSchedule]?
     private var allprofiles: [String]?
 
-    private func readallschedules(nolog: Bool) {
-        guard self.allprofiles != nil else { return }
+    private func readallschedules(includelog: Bool) {
         var configurationschedule: [ConfigurationSchedule]?
-        for i in 0 ..< self.allprofiles!.count {
-            let profilename = self.allprofiles![i]
+        for i in 0 ..< (self.allprofiles?.count ?? 0) {
+            let profilename = self.allprofiles?[i]
             if self.allschedules == nil {
                 self.allschedules = []
             }
             if profilename == NSLocalizedString("Default profile", comment: "default profile") {
-                configurationschedule = PersistentStorageAllprofilesAPI(profile: nil).getScheduleandhistory(nolog: nolog)
+                configurationschedule = PersistentStorageAllprofilesAPI(profile: nil).getScheduleandhistory(includelog: includelog)
             } else {
-                configurationschedule = PersistentStorageAllprofilesAPI(profile: profilename).getScheduleandhistory(nolog: nolog)
+                configurationschedule = PersistentStorageAllprofilesAPI(profile: profilename).getScheduleandhistory(includelog: includelog)
             }
-            guard configurationschedule != nil else { return }
-            for j in 0 ..< configurationschedule!.count {
-                configurationschedule![j].profilename = profilename
-                self.allschedules!.append(configurationschedule![j])
+            for j in 0 ..< (configurationschedule?.count ?? 0) {
+                configurationschedule?[j].profilename = profilename
+                if let configurationschedule = configurationschedule?[j] {
+                    self.allschedules?.append(configurationschedule)
+                }
             }
         }
     }
@@ -40,8 +39,12 @@ class Allschedules {
         return self.allschedules
     }
 
-    init(nolog: Bool) {
+    init(includelog: Bool) {
         self.allprofiles = AllProfilenames().allprofiles
-        self.readallschedules(nolog: nolog)
+        self.readallschedules(includelog: includelog)
+    }
+
+    deinit {
+        print("deinit Allschedules")
     }
 }

@@ -5,79 +5,60 @@
 //  Created by Thomas Evensen on 18/11/2016.
 //  Copyright © 2016 Thomas Evensen. All rights reserved.
 //
+// swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-class ViewControllerAbout: NSViewController, SetDismisser, Delay {
+class ViewControllerAbout: NSViewController {
+    @IBOutlet var version: NSTextField!
+    @IBOutlet var downloadbutton: NSButton!
+    @IBOutlet var thereisanewversion: NSTextField!
+    @IBOutlet var rsyncversionstring: NSTextField!
+    @IBOutlet var copyright: NSTextField!
+    @IBOutlet var iconby: NSTextField!
+    @IBOutlet var chinese: NSTextField!
+    @IBOutlet var norwegian: NSTextField!
+    @IBOutlet var german: NSTextField!
+    @IBOutlet var italian: NSTextField!
+    @IBOutlet var configpath: NSTextField!
+    @IBOutlet var dutch: NSTextField!
 
-    @IBOutlet weak var version: NSTextField!
-    @IBOutlet weak var downloadbutton: NSButton!
-    @IBOutlet weak var thereisanewversion: NSTextField!
-    @IBOutlet weak var rsyncversionstring: NSTextField!
-    @IBOutlet weak var copyright: NSTextField!
-    @IBOutlet weak var iconby: NSTextField!
-    @IBOutlet weak var chinese: NSTextField!
-    @IBOutlet weak var norwegian: NSTextField!
-
-    var copyrigthstring: String = NSLocalizedString("Copyright ©2019 Thomas Evensen", comment: "copyright")
+    var copyrigthstring: String = NSLocalizedString("Copyright ©2020 Thomas Evensen", comment: "copyright")
     var iconbystring: String = NSLocalizedString("Icon by: Zsolt Sándor", comment: "icon")
-    var chinesestring: String = NSLocalizedString("Chinese (Simplified) translation by: StringKe", comment: "chinese")
+    var chinesestring: String = NSLocalizedString("Chinese (Simplified) translation by: StringKe (Chen)", comment: "chinese")
     var norwegianstring: String = NSLocalizedString("Norwegian translation by: Thomas Evensen", comment: "norwegian")
+    var germanstring: String = NSLocalizedString("German translation by: Andre Voigtmann", comment: "german")
+    var italianstring: String = NSLocalizedString("Italian translation by: Stefano Steve Cutelle'", comment: "italian")
+    var dutchstring: String = NSLocalizedString("Dutch translation by: Marcellino Santoso", comment: "ducth")
 
     var resource: Resources?
-    var outputprocess: OutputProcess?
 
-    @IBAction func dismiss(_ sender: NSButton) {
-        if (self.presentingViewController as? ViewControllerMain) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
-        } else if (self.presentingViewController as? ViewControllerSchedule) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabschedule)
-        } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcnewconfigurations)
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
-        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        } else if (self.presentingViewController as? ViewControllerSsh) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcssh)
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcverify)
-        } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcloggdata)
-        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
-        }
-    }
-
-    @IBAction func changelog(_ sender: NSButton) {
+    @IBAction func changelog(_: NSButton) {
         if let resource = self.resource {
             NSWorkspace.shared.open(URL(string: resource.getResource(resource: .changelog))!)
         }
-        self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
+        self.view.window?.close()
     }
 
-    @IBAction func documentation(_ sender: NSButton) {
+    @IBAction func documentation(_: NSButton) {
         if let resource = self.resource {
             NSWorkspace.shared.open(URL(string: resource.getResource(resource: .documents))!)
         }
-        self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
+        self.view.window?.close()
     }
 
-    @IBAction func introduction(_ sender: NSButton) {
-        if let resource = self.resource {
-            NSWorkspace.shared.open(URL(string: resource.getResource(resource: .introduction))!)
-        }
-        self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
-    }
-
-    @IBAction func download(_ sender: NSButton) {
+    @IBAction func download(_: NSButton) {
         guard ViewControllerReference.shared.URLnewVersion != nil else {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
+            self.view.window?.close()
             return
         }
         NSWorkspace.shared.open(URL(string: ViewControllerReference.shared.URLnewVersion!)!)
-        self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
+        self.view.window?.close()
+    }
+
+    @IBAction func closeview(_: NSButton) {
+        self.view.window?.close()
     }
 
     override func viewDidLoad() {
@@ -87,6 +68,9 @@ class ViewControllerAbout: NSViewController, SetDismisser, Delay {
         self.iconby.stringValue = self.iconbystring
         self.chinese.stringValue = self.chinesestring
         self.norwegian.stringValue = self.norwegianstring
+        self.german.stringValue = self.germanstring
+        self.italian.stringValue = self.italianstring
+        self.dutch.stringValue = self.dutchstring
         self.resource = Resources()
     }
 
@@ -98,6 +82,7 @@ class ViewControllerAbout: NSViewController, SetDismisser, Delay {
         }
         self.thereisanewversion.stringValue = NSLocalizedString("You have the latest ...", comment: "About")
         self.rsyncversionstring.stringValue = ViewControllerReference.shared.rsyncversionstring ?? ""
+        self.configpath.stringValue = NamesandPaths(profileorsshrootpath: .profileroot).fullroot ?? ""
     }
 
     override func viewDidDisappear() {
@@ -109,9 +94,9 @@ class ViewControllerAbout: NSViewController, SetDismisser, Delay {
 extension ViewControllerAbout: NewVersionDiscovered {
     // Notifies if new version is discovered
     func notifyNewVersion() {
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.downloadbutton.isEnabled = true
             self.thereisanewversion.stringValue = NSLocalizedString("New version is available:", comment: "About")
-        })
+        }
     }
 }

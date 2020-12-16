@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol RsyncError: class {
+protocol RsyncError: AnyObject {
     func rsyncerror()
 }
 
@@ -18,14 +18,12 @@ enum Trim {
     case three
 }
 
-final class OutputProcess {
-
-    private var output: [String]?
-    private var trimmedoutput: [String]?
-    private var startindex: Int?
-    private var maxnumber: Int = 0
+class OutputProcess {
+    var output: [String]?
+    var trimmedoutput: [String]?
+    var startindex: Int?
+    var maxnumber: Int = 0
     weak var errorDelegate: RsyncError?
-    weak var allerrorsDelegate: Allerrors?
     var error: Bool = false
 
     func getMaxcount() -> Int {
@@ -51,13 +49,13 @@ final class OutputProcess {
         }
     }
 
-    func addlinefromoutput (str: String) {
+    func addlinefromoutput(str: String) {
         if self.startindex == nil {
             self.startindex = 0
         } else {
             self.startindex = self.output?.count ?? 0 + 1
         }
-        str.enumerateLines { (line, _) in
+        str.enumerateLines { line, _ in
             self.output?.append(line)
         }
     }
@@ -67,27 +65,26 @@ final class OutputProcess {
         guard self.output != nil else { return nil }
         switch trim {
         case .one:
-            for i in 0 ..< self.output!.count {
+            for i in 0 ..< (self.output?.count ?? 0) {
                 let substr = self.output![i].dropFirst(10).trimmingCharacters(in: .whitespacesAndNewlines)
                 let str = substr.components(separatedBy: " ").dropFirst(3).joined(separator: " ")
-                if str.isEmpty == false && str.contains(".DS_Store") == false {
+                if str.isEmpty == false, str.contains(".DS_Store") == false {
                     out.append("./" + str)
                 }
             }
         case .two:
-            for i in 0 ..< self.output!.count where self.output![i].last != "/" {
+            for i in 0 ..< (self.output?.count ?? 0) where self.output![i].last != "/" {
                 out.append(self.output![i])
                 self.error = self.output![i].contains("rsync error:")
                 if self.error {
                     self.errorDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
-                    self.allerrorsDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
                     self.errorDelegate?.rsyncerror()
-                    self.allerrorsDelegate?.allerrors(outputprocess: self)
+                    _ = Logging(self, true)
                 }
             }
             self.maxnumber = out.count
         case .three:
-            for i in 0 ..< self.output!.count {
+            for i in 0 ..< (self.output?.count ?? 0) {
                 let substr = self.output![i].dropFirst(10).trimmingCharacters(in: .whitespacesAndNewlines)
                 let str = substr.components(separatedBy: " ").dropFirst(3).joined(separator: " ")
                 if str.isEmpty == false {
@@ -101,7 +98,7 @@ final class OutputProcess {
         return out
     }
 
-    init () {
+    init() {
         self.output = [String]()
     }
- }
+}

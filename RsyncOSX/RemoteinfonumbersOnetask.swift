@@ -5,12 +5,11 @@
 //  Created by Thomas Evensen on 31.12.2017.
 //  Copyright © 2017 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length trailing_comma
 
 import Foundation
 
 class RemoteinfonumbersOnetask {
-
     var transferredNumber: String?
     var transferredNumberSizebytes: String?
     var totalNumber: String?
@@ -21,27 +20,29 @@ class RemoteinfonumbersOnetask {
 
     func record() -> NSMutableDictionary {
         let dict: NSMutableDictionary = [
-            "transferredNumber": self.transferredNumber ?? "",
-            "transferredNumberSizebytes": self.transferredNumberSizebytes ?? "",
-            "totalNumber": self.totalNumber ?? "",
-            "totalNumberSizebytes": self.totalNumberSizebytes ?? "",
-            "totalDirs": self.totalDirs ?? "",
-            "newfiles": self.newfiles ?? ""]
-        dict.setValue(self.deletefiles ?? "", forKey: "deletefiles")
-        dict.setValue(0, forKey: "select")
+            DictionaryStrings.transferredNumber.rawValue: self.transferredNumber ?? "",
+            DictionaryStrings.transferredNumberSizebytes.rawValue: self.transferredNumberSizebytes ?? "",
+            DictionaryStrings.totalNumber.rawValue: self.totalNumber ?? "",
+            DictionaryStrings.totalNumberSizebytes.rawValue: self.totalNumberSizebytes ?? "",
+            DictionaryStrings.totalDirs.rawValue: self.totalDirs ?? "",
+            DictionaryStrings.newfiles.rawValue: self.newfiles ?? "",
+        ]
+        dict.setValue(self.deletefiles ?? "", forKey: DictionaryStrings.deletefiles.rawValue)
+        dict.setValue(0, forKey: DictionaryStrings.select.rawValue)
         return dict
     }
 
     func recordremotenumbers(index: Int) -> NSMutableDictionary {
         let dict: NSMutableDictionary = [
-            "transferredNumber": self.transferredNumber ?? "",
-            "transferredNumberSizebytes": self.transferredNumberSizebytes ?? "",
-            "totalNumber": self.totalNumber ?? "",
-            "totalNumberSizebytes": self.totalNumberSizebytes ?? "",
-            "totalDirs": self.totalDirs ?? "",
-            "newfiles": self.newfiles ?? "",
-            "deletefiles": self.deletefiles ?? "",
-            "index": index]
+            DictionaryStrings.transferredNumber.rawValue: self.transferredNumber ?? "",
+            DictionaryStrings.transferredNumberSizebytes.rawValue: self.transferredNumberSizebytes ?? "",
+            DictionaryStrings.totalNumber.rawValue: self.totalNumber ?? "",
+            DictionaryStrings.totalNumberSizebytes.rawValue: self.totalNumberSizebytes ?? "",
+            DictionaryStrings.totalDirs.rawValue: self.totalDirs ?? "",
+            DictionaryStrings.newfiles.rawValue: self.newfiles ?? "",
+            DictionaryStrings.deletefiles.rawValue: self.deletefiles ?? "",
+            DictionaryStrings.index.rawValue: index,
+        ]
         return dict
     }
 

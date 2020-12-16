@@ -1,0 +1,441 @@
+/* Restore */
+" ... set in User configuration ..." = " ... in der Benutzerkonfiguration gesetzt ...";
+
+/* Execute */
+"⌘A to abort or wait..." = "⌘A zum Abbrechen oder Warten...";
+
+/* Toolbar */
+"Abort task..." = "Aufgabe abbrechen...";
+
+/* Snapshots */
+"Aborting delete operation..." = "Löschvorgang wird abgebrochen...";
+
+/* Add schedule
+   New
+   Sidebar */
+"Add" = "Neu";
+
+/* New */
+"Add config?" = "Konfiguration hinzufügen?";
+
+/* Add schedule */
+"Add Schedule?" = "Zeitplan hinzufügen?";
+
+/* Sidebar */
+"Assist" = "Hilfe";
+
+/* Tooltip */
+"By using Finder drag and drop filepaths." = "Durch Verwendung von Finder Drag and Drop Dateipfaden.";
+
+/* Cancel NSAlert */
+"Cancel" = "Abbrechen";
+
+/* Add schedule */
+"Cancel or Add" = "Abbrechen oder hinzufügen";
+
+/* Userconfig */
+"Cancel or Continue?" = "Abbrechen oder fortfahren?";
+
+/* Execute
+   Logg
+   Profiles
+   Snapshots */
+"Cancel or Delete" = "Abbrechen oder Löschen";
+
+/* Userconfig */
+"Cancel or Reboot?" = "Abbrechen oder Neustarten?";
+
+/* Restore */
+"Cancel or Restore" = "Abbrechen oder Wiederherstellen";
+
+/* Logg */
+"Cancel or Save" = "Abbrechen oder Speichern";
+
+/* Restore */
+"Cannot copy from a syncremote task..." = "Kann nicht von einer syncremote Aufgabe kopieren...";
+
+/* Verify */
+"Cannot verify a syncremote task..." = "Kann eine syncremote Aufgabe nicht überprüfen...";
+
+/* Sidebar */
+"Change" = "Ändern";
+
+/* chinese */
+"Chinese (Simplified) translation by: StringKe (Chen)" = "Chinesisch (vereinfacht) Übersetzung von: StringKe (Chen)";
+
+/* Snapshots */
+"Cleaning logs completed..." = "Logs werden bereinigt...";
+
+/* Close NSAlert */
+"Close" = "Schließen";
+
+/* Sidebar */
+"Command" = "Befehl";
+
+/* Userconfig */
+"Continue" = "Fortfahren";
+
+/* Restore */
+"Copy single files or directory?" = "Einzelne Dateien oder Ordner kopieren?";
+
+/* copyright */
+"Copyright ©2020 Thomas Evensen" = "Copyright ©2020 Thomas Evensen";
+
+/* Sidebar */
+"Create key" = "Schlüssel erstellen";
+
+/* main */
+"daily" = "täglich";
+
+/* Sidebar */
+"Daily" = "Täglich";
+
+/* Remote Info */
+"Date last synchronize:" = "Datum der letzten Synchronisierung:";
+
+/* Remote Info */
+"Days since last synchronize:" = "Tage seit der letzten Synchronisierung:";
+
+/* default profile */
+"Default profile" = "Standardprofil";
+
+/* Execute
+   Logg
+   Main
+   plan
+   Profiles
+   Sidebar
+   Snapshots */
+"Delete" = "Löschen";
+
+/* plan */
+"Delete number of snapshots:" = "Anzahl der Schnappschüsse löschen:";
+
+/* Snapshots */
+"Delete operation completed..." = "Löschvorgang abgeschlossen...";
+
+/* Profiles */
+"Delete profile:" = "Profil löschen:";
+
+/* Execute */
+"Delete selected task?" = "Ausgewählte Aufgabe löschen?";
+
+/* plan */
+"Delete snapshots older than:" = "Lösche Snapshots älter als:";
+
+/* Tooltip */
+"Destination catalog:" = "Zielkatalog:";
+
+/* Snapshots */
+"Do you REALLY want to delete selected snapshots" = "Möchten Sie die ausgewählten Schnappschüsse LÖSCHEN";
+
+/* Restore */
+"Do you REALLY want to start a restore?" = "Willst du EIN WIEDERHERSTELLEN starten?";
+
+/* Snapshots */
+"Dont change the snapshot num if you don´t know what you are doing..." = "Ändern Sie nicht das Snapshot-Num, wenn Sie nicht wissen, was Sie tun...";
+
+/* ducth */
+"Dutch translation by: Marcellino Santoso" = "Niederländische Übersetzung von: Marcellino Santoso";
+
+/* plan */
+"earlier months" = "frühere Monate";
+
+/* Error rsync */
+"ERROR: no rsync in" = "FEHLER: kein rsync in";
+
+/* Error rsync */
+"ERROR: no rsync in /usr/local/bin" = "FEHLER: kein rsync in /usr/local/bin";
+
+/* Sidebar */
+"Estimate" = "Schätzung";
+
+/* Execute */
+"Estimating..." = "Schätzung...";
+
+/* Remote info */
+"Estimation completed" = "Schätzung abgeschlossen";
+
+/* plan */
+"every" = "jede";
+
+/* Main */
+"Execute" = "Ausführen";
+
+/* Toolbar */
+"Execute all tasks now..." = "Alle Aufgaben jetzt ausführen...";
+
+/* Toolbar */
+"Execute estimate and quickbackup for all tasks..." = "Schätzung und Schnellsicherung für alle Aufgaben ausführen...";
+
+/* Toolbar */
+"Execute selected tasks..." = "Ausgewählte Tasks ausführen...";
+
+/* Restore */
+"Executing restore..." = "Wiederherstellung wird ausgeführt...";
+
+/* Execute */
+"Executing..." = "Wird ausgeführt...";
+
+/* Sidebar */
+"Filelist" = "Dateiliste";
+
+/* Restore */
+"Filelist for snapshot tasks might be huge?" = "Die Liste für Snapshot-Aufgaben könnte enorm sein?";
+
+/* Userconfig */
+"Format of config files is about to be changed to JSON." = "Das Format der Konfigurationsdateien wird in JSON geändert.";
+
+/* Userconfig */
+"Format of config files is about to be changed to PLIST." = "Das Format der Konfigurationsdateien wird in PLIST geändert.";
+
+/* plan */
+"Friday" = "Freitag";
+
+/* german */
+"German translation by: Andre Voigtmann" = "Deutsche Übersetzung von: Andre Voigtmann";
+
+/* Restore */
+"Getting info, please wait..." = "Info wird abgerufen, bitte warten...";
+
+/* Loggdata */
+"Got index from Snapshots and listing logs for one configuration..." = "Index aus Snapshots und Listing-Logs für eine Konfiguration...";
+
+/* Loggdata */
+"Got index from Synchronize and listing logs for one configuration..." = "Index aus Synchronisier und Auflistung von Logs für eine Konfiguration...";
+
+/* Schedules */
+"Got index from Synchronize..." = "Index von Synchronisier...";
+
+/* Remote Info */
+"Got it..." = "Verstand...";
+
+/* datetime */
+"h" = "h";
+
+/* icon */
+"Icon by: Zsolt Sándor" = "Icon von: Zsolt Sándor";
+
+/* italian */
+"Italian translation by: Stefano Steve Cutelle'" = "Italienische Übersetzung von: Stefano Steve Cutelle'";
+
+/* Logg */
+"JSON file exists: " = "JSON-Datei existiert: ";
+
+/* plan */
+"Keep" = "Behalten";
+
+/* plan */
+"last" = "zuletzt";
+
+/* Toolbar */
+"List all profiles and configurations..." = "Alle Profile und Konfigurationen auflisten...";
+
+/* No comment provided by engineer. */
+"Load" = "Laden";
+
+/* Remote info
+   Remote Info */
+"Loaded cached data..." = "Lade zwischengespeicherte Daten...";
+
+/* Tooltip */
+"Local catalog:" = "Lokaler Katalog:";
+
+/* Restore */
+"Local or remote catalog cannot be empty..." = "Lokaler oder Remote-Katalog darf nicht leer sein...";
+
+/* main */
+"manuel" = "manuell";
+
+/* Execute */
+"Menu app is running..." = "Menü-App läuft...";
+
+/* plan */
+"Monday" = "Montag";
+
+/* Userconfig */
+"New format is not equal to current." = "Das neue Format entspricht nicht dem aktuelle.";
+
+/* Execute */
+"New version is available - see About" = "Neue Version ist verfügbar - siehe Über";
+
+/* About */
+"New version is available:" = "Neue Version ist verfügbar:";
+
+/* Execute */
+"No rsync in path..." = "Kein rsync im Pfad...";
+
+/* Schedule details */
+"no startdate" = "kein Startdatum";
+
+/* Schedule details */
+"no stopdate" = "kein Stopdatum";
+
+/* Restore */
+"No such temporay catalog for restore, set it in user config." = "Kein solcher temporärer Katalog für die Wiederherstellung, setzen Sie ihn in der Benutzer-Konfiguration.";
+
+/* plan */
+"none" = "keine";
+
+/* norwegian */
+"Norwegian translation by: Thomas Evensen" = "Norwegische Übersetzung von: Thomas Evensen";
+
+/* Restore */
+"Not a remote task, use Finder to copy files..." = "Keine entfernte Aufgabe, verwenden Sie Finder um Dateien zu kopieren...";
+
+/* Snapshots */
+"Not a snapshot task..." = "Keine snapshot aufgabe...";
+
+/* AllProfiles */
+"Number of configurations:" = "Anzahl der Konfigurationen:";
+
+/* Logg */
+"Number of logs:" = "Anzahl der Logs:";
+
+/* Restore */
+"Number of remote files:" = "Anzahl der entfernten Dateien:";
+
+/* Remote info */
+"Number of tasks to estimate:" = "Anzahl der zu berechnenden Aufgaben:";
+
+/* Snapshots */
+"Number snapshots:" = "Anzahl Momentaufnahmen:";
+
+/* main */
+"once" = "einmal";
+
+/* Sidebar */
+"Once" = "Einmalig";
+
+/* Sidebar */
+"Parameter" = "Parameter";
+
+/* Logg */
+"PLIST file exists: " = "JSON-Datei existiert: ";
+
+/* Execute */
+"Possible error logging..." = "Mögliche Fehlermeldung...";
+
+/* plan */
+"previous month" = "vorheriger Monat";
+
+/* Execute */
+"Profile:" = "Profil:";
+
+/* Execute */
+"Profile: please wait..." = "Profil: Bitte warten...";
+
+/* Userconfig */
+"Reboot" = "Neustart";
+
+/* Sidebar */
+"Remote" = "Remote";
+
+/* Tooltip */
+"Remote catalog:" = "Entfernter Katalog:";
+
+/* Sidebar */
+"Reset" = "Reset";
+
+/* Restore
+   Sidebar */
+"Restore" = "Wiederherstellen";
+
+/* Restore */
+"Restore completed..." = "Wiederherstellung abgeschlossen...";
+
+/* plan */
+"Saturday" = "Samstag";
+
+/* Logg
+   Sidebar
+   Userconfig */
+"Save" = "Speichern";
+
+/* Schedules */
+"Scheduled tasks in menu app..." = "Geplante Aufgaben in der Menü-App...";
+
+/* Copy files
+   Remote Info
+   Verify */
+"Seems not to be connected..." = "Scheint nicht verbunden zu sein...";
+
+/* Restore */
+"Seems to be nothing to restore" = "Scheint nichts zu restaurieren";
+
+/* Execute */
+"Select a task...." = "Aufgabe auswählen....";
+
+/* Execute */
+"Select one or more tasks..." = "Wählen Sie eine oder mehrere Kanten aus...";
+
+/* Logg */
+"Selected logs:" = "Ausgewählte Logs:";
+
+/* Snapshots */
+"Seriously, enter a real number..." = "Ernsthaft, geben Sie eine echte Zahl ein...";
+
+/* Toolbar */
+"Show userconfig..." = "Benutzerkonfiguration anzeigen...";
+
+/* Restore */
+"Simulated: execute restore of files to temporary restore path" = "Simuliert: Führe vollständige Wiederherstellung auf temporären Wiederherstellungspfad aus";
+
+/* Tooltip */
+"Source catalog:" = "Quellkatalog:";
+
+/* Restore */
+"Start" = "Anfang";
+
+/* Restore */
+"Start getting files?" = "Starte das Abrufen von Dateien?";
+
+/* Restore */
+"Start restore?" = "Wiederherstellen?";
+
+/* main */
+"stopped" = "gestoppt";
+
+/* dayofweek
+   plan */
+"Sunday" = "Sonntag";
+
+/* Execute */
+"The menu app" = "Die Menü-App";
+
+/* Quickbackup */
+"There seems to be nothing to do..." = "Es scheint nichts zu tun zu geben...";
+
+/* New */
+"This is added before?" = "Dies wird vorher hinzugefügt?";
+
+/* plan */
+"this month" = "in diesem Monat";
+
+/* plan */
+"this week" = "diese Woche";
+
+/* plan */
+"Thursday" = "Donnerstag";
+
+/* plan */
+"Tuesday" = "Dienstag";
+
+/* Sidebar */
+"Update" = "Aktualisieren";
+
+/* plan */
+"Wednesday" = "Mittwoch";
+
+/* main */
+"weekly" = "wöchentlich";
+
+/* Sidebar */
+"Weekly" = "Wöchentlich";
+
+/* Snapshots */
+"You cannot delete that many, max are" = "Du kannst nicht so viele löschen, maximal";
+
+/* About */
+"You have the latest ..." = "Sie haben die neueste ...";
+

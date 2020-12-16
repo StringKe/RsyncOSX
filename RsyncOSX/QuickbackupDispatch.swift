@@ -9,30 +9,27 @@
 import Foundation
 
 class QuickbackupDispatch: SetSchedules {
+    weak var workitem: DispatchWorkItem?
+    // Process termination and filehandler closures
+    var processtermination: () -> Void
+    var filehandler: () -> Void
 
-    private var workitem: DispatchWorkItem?
-
-    private func dispatchtask(seconds: Int) {
-        let work = DispatchWorkItem {  () -> Void in
-            _ = ExecuteQuickbackupTask()
+    private func dispatchtask(seconds: Int, outputprocess: OutputProcess?) {
+        let work = DispatchWorkItem { () -> Void in
+            _ = ExecuteQuickbackupTask(processtermination: self.processtermination,
+                                       filehandler: self.filehandler,
+                                       outputprocess: outputprocess)
         }
         self.workitem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(seconds), execute: work)
     }
 
-    private func dispatchtask(seconds: Int, updateprogress: UpdateProgress?) {
-        let work = DispatchWorkItem {  () -> Void in
-            _ = ExecuteQuickbackupTask(updateprogress: updateprogress)
-        }
-        self.workitem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(seconds), execute: work)
-    }
-
-    init() {
-        self.dispatchtask(seconds: 0)
-    }
-
-    init(updateprogress: UpdateProgress?) {
-        self.dispatchtask(seconds: 0, updateprogress: updateprogress)
+    init(processtermination: @escaping () -> Void,
+         filehandler: @escaping () -> Void,
+         outputprocess: OutputProcess?)
+    {
+        self.processtermination = processtermination
+        self.filehandler = filehandler
+        self.dispatchtask(seconds: 0, outputprocess: outputprocess)
     }
 }

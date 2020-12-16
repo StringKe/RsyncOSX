@@ -5,116 +5,203 @@
 //  Created by Thomas Evensen on 25/08/2019.
 //  Copyright © 2019 Thomas Evensen. All rights reserved.
 //
-//  swiftlint:disable cyclomatic_complexity function_body_length
+//  swiftlint:disable cyclomatic_complexity line_length function_body_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-extension ViewControllerMain: NSTableViewDataSource {
-    // Delegate for size of table
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        return self.configurations?.configurationsDataSourcecount() ?? 0
+protocol Attributedestring: AnyObject {
+    func attributedstring(str: String, color: NSColor, align: NSTextAlignment) -> NSMutableAttributedString
+}
+
+extension Attributedestring {
+    func attributedstring(str: String, color: NSColor, align: NSTextAlignment) -> NSMutableAttributedString {
+        let attributedString = NSMutableAttributedString(string: str)
+        let range = (str as NSString).range(of: str)
+        attributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: range)
+        attributedString.setAlignment(align, range: range)
+        return attributedString
     }
 }
 
-extension ViewControllerMain: NSTableViewDelegate, Attributedestring {
+extension ViewControllerMain: NSTableViewDataSource {
+    // Delegate for size of table
+    func numberOfRows(in _: NSTableView) -> Int {
+        return self.configurations?.configurations?.count ?? 0
+    }
+}
 
-    // TableView delegates
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        if row > self.configurations!.configurationsDataSourcecount() - 1 { return nil }
-        let object: NSDictionary = self.configurations!.getConfigurationsDataSource()![row]
-        let hiddenID: Int = self.configurations!.getConfigurations()[row].hiddenID
-        let markdays: Bool = self.configurations!.getConfigurations()[row].markdays
-        let celltext = object[tableColumn!.identifier] as? String
-        if tableColumn!.identifier.rawValue == "daysID" {
-            if markdays {
-                return self.attributedstring(str: celltext!, color: NSColor.red, align: .right)
-            } else {
-                return object[tableColumn!.identifier] as? String
+extension ViewControllerMain: NSTableViewDelegate {
+    // setting which table row is selected, force new estimation
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        self.seterrorinfo(info: "")
+        // If change row during estimation
+        if ViewControllerReference.shared.process != nil, self.index != nil { self.abortOperations() }
+        self.info.stringValue = Infoexecute().info(num: 0)
+        let myTableViewFromNotification = (notification.object as? NSTableView)!
+        let indexes = myTableViewFromNotification.selectedRowIndexes
+        if let index = indexes.first {
+            self.index = index
+            self.indexes = self.mainTableView.selectedRowIndexes
+            if self.lastindex != index {
+                self.singletask = nil
             }
-        } else if tableColumn!.identifier.rawValue == "offsiteServerCellID",
-            ((object[tableColumn!.identifier] as? String)?.isEmpty) == true {
-            return "localhost"
-        } else if tableColumn!.identifier.rawValue == "schedCellID" {
-            if let obj = self.schedulesortedandexpanded {
-                if obj.numberoftasks(hiddenID).0 > 0 {
-                    if obj.numberoftasks(hiddenID).1 > 3600 {
-                        return #imageLiteral(resourceName: "yellow")
-                    } else {
-                        return #imageLiteral(resourceName: "green")
-                    }
-                }
-            }
-        } else if tableColumn!.identifier.rawValue == "statCellID" {
-            if row == self.index {
-                if self.singletask == nil {
-                    return #imageLiteral(resourceName: "yellow")
-                } else {
-                    return #imageLiteral(resourceName: "green")
-                }
-            }
-        } else if tableColumn!.identifier.rawValue == "snapCellID" {
-            let snap = object.value(forKey: "snapCellID") as? Int ?? -1
-            if snap > 0 {
-                return String(snap - 1)
-            } else {
-                return ""
-            }
-        } else if tableColumn!.identifier.rawValue == "runDateCellID" {
-            let stringdate: String = object[tableColumn!.identifier] as? String ?? ""
-            if stringdate.isEmpty {
-                return ""
-            } else {
-                return stringdate.en_us_date_from_string().localized_string_from_date()
-            }
+            self.lastindex = index
         } else {
-            if tableColumn!.identifier.rawValue == "batchCellID" {
-                return object[tableColumn!.identifier] as? Int
-            } else {
-                // Check if test for connections is selected
-                if self.configurations?.tcpconnections?.connectionscheckcompleted ?? false == true {
-                    if (self.configurations?.tcpconnections?.gettestAllremoteserverConnections()?[row]) ?? false &&
-                        tableColumn!.identifier.rawValue == "offsiteServerCellID" {
-                        return self.attributedstring(str: celltext ?? "", color: NSColor.red, align: .left)
-                    } else {
-                        return object[tableColumn!.identifier] as? String
-                    }
+            self.index = nil
+            self.indexes = nil
+            self.singletask = nil
+            self.reloadtabledata()
+        }
+        self.reset()
+    }
+
+    func tableView(_: NSTableView, rowActionsForRow row: Int, edge: NSTableView.RowActionEdge) -> [NSTableViewRowAction] {
+        guard ViewControllerReference.shared.process == nil else { return [] }
+        if edge == .leading {
+            let delete = NSTableViewRowAction(style: .destructive, title: NSLocalizedString("Delete", comment: "Main")) { _, _ in
+                self.deleterow(index: row)
+            }
+            return [delete]
+        } else {
+            let execute = NSTableViewRowAction(style: .regular, title: NSLocalizedString("Execute", comment: "Main")) { _, _ in
+                if self.index != nil, self.singletask != nil {
+                    if self.index == row { self.executeSingleTask() }
                 } else {
-                    return object[tableColumn!.identifier] as? String
+                    self.executetask(index: row)
+                }
+            }
+            execute.backgroundColor = NSColor.gray
+            return [execute]
+        }
+    }
+
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        guard self.configurations != nil else { return nil }
+        if row > (self.configurations?.configurations?.count ?? 0) - 1 { return nil }
+        if let object = self.configurations?.configurations?[row],
+           let hiddenID: Int = self.configurations?.getConfigurations()?[row].hiddenID,
+           let markdays: Bool = self.configurations?.getConfigurations()?[row].markdays,
+           let tableColumn = tableColumn
+        {
+            let cellIdentifier: String = tableColumn.identifier.rawValue
+            switch cellIdentifier {
+            case DictionaryStrings.taskCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.task
+                    cell.imageView?.image = nil
+                    cell.imageView?.alignment = .right
+                    if row == self.index {
+                        if self.singletask != nil {
+                            cell.imageView?.image = NSImage(#imageLiteral(resourceName: "green"))
+                        }
+                    }
+                    return cell
+                }
+            case DictionaryStrings.offsiteServerCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.offsiteServer
+                    if cell.textField?.stringValue.isEmpty ?? true {
+                        cell.textField?.stringValue = DictionaryStrings.localhost.rawValue
+                    }
+                    if self.configurations?.tcpconnections?.connectionscheckcompleted ?? false == true {
+                        if (self.configurations?.tcpconnections?.gettestAllremoteserverConnections()?[row]) ?? false,
+                           tableColumn.identifier.rawValue == DictionaryStrings.offsiteServerCellID.rawValue
+                        {
+                            cell.textField?.textColor = setcolor(nsviewcontroller: self, color: .red)
+                        } else {
+                            cell.textField?.textColor = setcolor(nsviewcontroller: self, color: .black)
+                        }
+                    }
+                    return cell
+                }
+            case DictionaryStrings.ShellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = ""
+                    cell.imageView?.image = nil
+                    let pre = object.executepretask
+                    let post = object.executeposttask
+                    if pre == 1 || post == 1 {
+                        cell.imageView?.image = NSImage(#imageLiteral(resourceName: "green"))
+                        cell.imageView?.alignment = .right
+                    }
+                    return cell
+                }
+            case DictionaryStrings.schedCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    if let obj = self.schedulesortedandexpanded {
+                        cell.textField?.stringValue = ""
+                        cell.imageView?.image = nil
+                        if obj.numberoftasks(hiddenID).0 > 0 {
+                            if obj.numberoftasks(hiddenID).1 > 3600 {
+                                cell.imageView?.image = NSImage(#imageLiteral(resourceName: "yellow"))
+                            } else {
+                                cell.imageView?.image = NSImage(#imageLiteral(resourceName: "green"))
+                            }
+                            cell.imageView?.alignment = .right
+                        }
+                    }
+                    return cell
+                }
+            case DictionaryStrings.snapCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    let snap = object.snapshotnum ?? -1
+                    if snap > 0 {
+                        cell.textField?.stringValue = String(snap - 1)
+                    } else {
+                        cell.textField?.stringValue = ""
+                    }
+                    return cell
+                }
+            case DictionaryStrings.runDateCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    let stringdate = object.dateRun ?? ""
+                    if stringdate.isEmpty {
+                        cell.textField?.stringValue = ""
+                    } else {
+                        cell.textField?.stringValue = stringdate.en_us_date_from_string().localized_string_from_date()
+                    }
+                    return cell
+                }
+            case DictionaryStrings.daysID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.dayssincelastbackup ?? ""
+                    cell.textField?.alignment = .right
+                    if markdays {
+                        cell.textField?.textColor = setcolor(nsviewcontroller: self, color: .red)
+                    } else {
+                        cell.textField?.textColor = setcolor(nsviewcontroller: self, color: .black)
+                    }
+                    return cell
+                }
+            case DictionaryStrings.localCatalogCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.localCatalog
+                    return cell
+                }
+            case DictionaryStrings.offsiteCatalogCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.offsiteCatalog
+                    return cell
+                }
+            case DictionaryStrings.offsiteServerCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.offsiteServer
+                    return cell
+                }
+            case DictionaryStrings.backupIDCellID.rawValue:
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = object.backupID
+                    return cell
+                }
+            default:
+                print(cellIdentifier)
+                if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: self) as? NSTableCellView {
+                    cell.textField?.stringValue = ""
+                    return cell
                 }
             }
         }
         return nil
     }
-
-    // Toggling batch
-    func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-        if self.process != nil {
-            self.abortOperations()
-        }
-        if self.configurations!.getConfigurations()[row].task == ViewControllerReference.shared.synchronize ||
-            self.configurations!.getConfigurations()[row].task == ViewControllerReference.shared.snapshot {
-            self.configurations!.togglebatch(row)
-        }
-    }
-
-    // when row is selected
-     // setting which table row is selected, force new estimation
-     func tableViewSelectionDidChange(_ notification: Notification) {
-         self.seterrorinfo(info: "")
-         // If change row during estimation
-         if self.process != nil { self.abortOperations() }
-         self.backupdryrun.state = .on
-         self.info.stringValue = Infoexecute().info(num: 0)
-         let myTableViewFromNotification = (notification.object as? NSTableView)!
-         let indexes = myTableViewFromNotification.selectedRowIndexes
-         if let index = indexes.first {
-             self.index = index
-         } else {
-             self.index = nil
-         }
-         self.reset()
-         self.showrsynccommandmainview()
-         self.reloadtabledata()
-     }
 }

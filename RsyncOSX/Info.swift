@@ -10,17 +10,16 @@
 import Foundation
 
 struct Infoexecute {
-
     // Execute
     let info11: String = NSLocalizedString("Select a task....", comment: "Execute")
     let info12: String = NSLocalizedString("Possible error logging...", comment: "Execute")
     let info13: String = NSLocalizedString("No rsync in path...", comment: "Execute")
     let info14: String = NSLocalizedString("⌘A to abort or wait...", comment: "Execute")
     let info15: String = NSLocalizedString("Menu app is running...", comment: "Execute")
-    let info16: String = NSLocalizedString("This is a combined task, execute by ⌘R...", comment: "Execute")
-    let info17: String = NSLocalizedString("Only valid for backup, snapshot and combined tasks...", comment: "Execute")
-    let info18: String = NSLocalizedString("No rclone config found...", comment: "Execute")
+    let info16: String = NSLocalizedString("Select one or more tasks...", comment: "Execute")
     let info19: String = NSLocalizedString("New version is available - see About", comment: "Execute")
+    let info20: String = NSLocalizedString("Estimating...", comment: "Execute")
+    let info21: String = NSLocalizedString("Executing...", comment: "Execute")
 
     // Execute
     func info(num: Int) -> String {
@@ -37,12 +36,12 @@ struct Infoexecute {
             return self.info15
         case 6:
             return self.info16
-        case 7:
-            return self.info17
-        case 8:
-            return self.info18
         case 9:
             return self.info19
+        case 10:
+            return self.info20
+        case 11:
+            return self.info21
         default:
             return ""
         }
@@ -50,9 +49,8 @@ struct Infoexecute {
 }
 
 struct Infologgdata {
-
     // Loggdata
-    let info21: String = NSLocalizedString("Got index from Execute and listing logs for one configuration...", comment: "Loggdata")
+    let info21: String = NSLocalizedString("Got index from Synchronize and listing logs for one configuration...", comment: "Loggdata")
     let info22: String = NSLocalizedString("Got index from Snapshots and listing logs for one configuration...", comment: "Loggdata")
 
     func info(num: Int) -> String {
@@ -67,13 +65,13 @@ struct Infologgdata {
     }
 }
 
-struct Infocopyfiles {
-
-    // Copy files
-    let info31: String = NSLocalizedString("No such local catalog for restore or set it in user config...", comment: "Copy files")
-    let info32: String = NSLocalizedString("Not a remote task, use Finder to copy files...", comment: "Copy files")
-    let info33: String = NSLocalizedString("Local or remote catalog cannot be empty...", comment: "Copy files")
+struct Inforestore {
+    // Restore
+    let info31: String = NSLocalizedString("No such temporay catalog for restore, set it in user config.", comment: "Restore")
+    let info32: String = NSLocalizedString("Not a remote task, use Finder to copy files...", comment: "Restore")
+    let info33: String = NSLocalizedString("Local or remote catalog cannot be empty...", comment: "Restore")
     let info34: String = NSLocalizedString("Seems not to be connected...", comment: "Copy files")
+    let info35: String = NSLocalizedString("Cannot copy from a syncremote task...", comment: "Restore")
 
     func info(num: Int) -> String {
         switch num {
@@ -85,6 +83,8 @@ struct Infocopyfiles {
             return self.info33
         case 4:
             return self.info34
+        case 5:
+            return self.info35
         default:
             return ""
         }
@@ -92,11 +92,10 @@ struct Infocopyfiles {
 }
 
 struct Infoschedule {
-
     // Schedules
     let info11: String = NSLocalizedString("Select a task....", comment: "Execute")
     let info42: String = NSLocalizedString("Scheduled tasks in menu app...", comment: "Schedules")
-    let info43: String = NSLocalizedString("Got index from Execute...", comment: "Schedules")
+    let info43: String = NSLocalizedString("Got index from Synchronize...", comment: "Schedules")
 
     func info(num: Int) -> String {
         switch num {
@@ -120,6 +119,7 @@ struct Infosnapshots {
     let info54: String = NSLocalizedString("Seriously, enter a real number...", comment: "Snapshots")
     let info55: String = NSLocalizedString("You cannot delete that many, max are", comment: "Snapshots")
     let info34: String = NSLocalizedString("Seems not to be connected...", comment: "Copy files")
+    let info56: String = NSLocalizedString("Cleaning logs completed...", comment: "Snapshots")
 
     // snapshots
     func info(num: Int) -> String {
@@ -136,6 +136,8 @@ struct Infosnapshots {
             return self.info55
         case 6:
             return self.info34
+        case 7:
+            return self.info56
         default:
             return ""
         }

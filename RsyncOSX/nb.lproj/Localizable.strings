@@ -1,17 +1,18 @@
 /* Restore */
 " ... set in User configuration ..." = "... sett i bruker preferanser...";
 
-/* Ssh */
-"... no remote server ..." = "...ingen ekstern server...";
-
 /* Execute */
 "⌘A to abort or wait..." = "⌘A for å avslutte eller vent...";
+
+/* Toolbar */
+"Abort task..." = "Avslutt oppgave...";
 
 /* Snapshots */
 "Aborting delete operation..." = "Avslutter slette operasjon...";
 
 /* Add schedule
-   New */
+   New
+   Sidebar */
 "Add" = "Legg til";
 
 /* New */
@@ -20,71 +21,95 @@
 /* Add schedule */
 "Add Schedule?" = "Legg til oppgave?";
 
-/* Batch */
-"Batchtasks completed, close view..." = "Batch oppgaver ferdig, lukker...";
+/* Sidebar */
+"Assist" = "Assist";
 
 /* Tooltip */
 "By using Finder drag and drop filepaths." = "Bruk Finder for dra og slipp filstier.";
 
 /* Cancel NSAlert */
-"Cancel" = "Kanseler";
+"Cancel" = "Avbryt";
 
 /* Add schedule */
-"Cancel or Add" = "Kanseler eller legg til";
+"Cancel or Add" = "Avbryt eller legg til";
+
+/* Userconfig */
+"Cancel or Continue?" = "Avbryt eller Fortsett?";
 
 /* Execute
    Logg
    Profiles
    Snapshots */
-"Cancel or Delete" = "Kanseler eller slett";
+"Cancel or Delete" = "Avbryt eller slett";
+
+/* Userconfig */
+"Cancel or Reboot?" = "Avbryte eller omstart?";
 
 /* Restore */
-"Cancel or Restore" = "Kanseler eller kopier";
+"Cancel or Restore" = "Avbryt eller gjenopprette";
+
+/* Logg */
+"Cancel or Save" = "Avbryt eller Lagre";
+
+/* Restore */
+"Cannot copy from a syncremote task..." = "Kan ikke gjenopprett fra syncremote...";
+
+/* Verify */
+"Cannot verify a syncremote task..." = "Kan ikke verifisere syncremote...";
+
+/* Sidebar */
+"Change" = "Endre";
 
 /* chinese */
-"Chinese (Simplified) translation by: StringKe" = "Chinese (Simplified) oversettelse av: StringKe";
+"Chinese (Simplified) translation by: StringKe (Chen)" = "Kinesisk (forenklet) oversettelse av: StringKe (Chen)";
+
+/* Snapshots */
+"Cleaning logs completed..." = "Sletting logger utført...";
 
 /* Close NSAlert */
 "Close" = "Lukk";
 
-/* Remote info */
-"Completed" = "Utført";
+/* Sidebar */
+"Command" = "Kommando";
 
-/* Verify */
-"Completed ..." = "Utført";
-
-/* Verify */
-"Computing changed, please wait..." = "Beregning endret, vennligst vent...";
+/* Userconfig */
+"Continue" = "Fortsett";
 
 /* Restore */
-"Copy single files or directory?" = "Kopier fil eller katalog?";
+"Copy single files or directory?" = "Gjenopprett fil eller katalog?";
 
 /* copyright */
-"Copyright ©2019 Thomas Evensen" = "Copyright ©2019 Thomas Evensen.";
+"Copyright ©2020 Thomas Evensen" = "Opphavsrett ©2020 Thomas Evensen";
+
+/* Sidebar */
+"Create key" = "Lag nøkkel";
 
 /* main */
 "daily" = "daglig";
 
-/* Remote Info
-   Verify */
-"Date last backup:" = "Dato siste backup:";
+/* Sidebar */
+"Daily" = "Daglig";
 
-/* datetime */
-"days" = "dager";
+/* Remote Info */
+"Date last synchronize:" = "Dato siste synkronisering:";
 
-/* Remote Info
-   Verify */
-"Days since last backup:" = "Dager siden siste backup:";
+/* Remote Info */
+"Days since last synchronize:" = "Dager siden sist synkronisering:";
 
 /* default profile */
 "Default profile" = "Default profil";
 
 /* Execute
    Logg
+   Main
    plan
    Profiles
+   Sidebar
    Snapshots */
 "Delete" = "Slett";
+
+/* plan */
+"Delete number of snapshots:" = "Slett antall snapshots:";
 
 /* Snapshots */
 "Delete operation completed..." = "Slette operasjon gjennomført...";
@@ -95,14 +120,23 @@
 /* Execute */
 "Delete selected task?" = "Slett valgte oppgave?";
 
+/* plan */
+"Delete snapshots older than:" = "Slett snapshots eldre enn:";
+
+/* Tooltip */
+"Destination catalog:" = "Lokal katalog:";
+
 /* Snapshots */
-"Do you REALLY want to DELETE selected snapshots?" = "Vil du VIRKELIG SLETTE valgte snapshot?";
+"Do you REALLY want to delete selected snapshots" = "Vil du slette valgte snapshots";
 
 /* Restore */
-"Do you REALLY want to start a RESTORE ?" = "Vil du VIRKELIG utføre en KOPI?";
+"Do you REALLY want to start a restore?" = "Vi du starte en full gjenopprett?";
 
 /* Snapshots */
 "Dont change the snapshot num if you don´t know what you are doing..." = "Ikke endre snapshot nummer hvis du ikke vet hva du gjør...";
+
+/* ducth */
+"Dutch translation by: Marcellino Santoso" = "Nederlandsk oversettelsen av: Marcellino Santoso";
 
 /* plan */
 "earlier months" = "tidligere måned";
@@ -113,45 +147,80 @@
 /* Error rsync */
 "ERROR: no rsync in /usr/local/bin" = "FEIL: ingen rsync i /usr/local/bin";
 
-/* Batch */
-"Estimation completed, you can start batch..." = "Estimering utført, start batch...";
+/* Sidebar */
+"Estimate" = "Estimer";
+
+/* Execute */
+"Estimating..." = "Estimer...";
+
+/* Remote info */
+"Estimation completed" = "Estimering ferdig";
 
 /* plan */
 "every" = "alle";
 
+/* Main */
+"Execute" = "Utfør";
+
+/* Toolbar */
+"Execute all tasks now..." = "Utfør alle oppgaver nå...";
+
+/* Toolbar */
+"Execute estimate and quickbackup for all tasks..." = "Utfør estimat og quickbackup for alle oppgaver...";
+
+/* Toolbar */
+"Execute selected tasks..." = "Utfør valgt oppgaver...";
+
 /* Restore */
-"Executing restore..." = "Utfører kopi...";
+"Executing restore..." = "Utfører gjenopprett...";
+
+/* Execute */
+"Executing..." = "Utfører...";
+
+/* Sidebar */
+"Filelist" = "Filliste";
+
+/* Restore */
+"Filelist for snapshot tasks might be huge?" = "Liste over filer i snapshot oppgaver kan være stor?";
+
+/* Userconfig */
+"Format of config files is about to be changed to JSON." = "Formatet på konfigurasjonsfiler er i ferd med å bli endret til JSON.";
+
+/* Userconfig */
+"Format of config files is about to be changed to PLIST." = "Formatet til konfigurasjonsfiler er i ferd med å bli endret til PLIST.";
 
 /* plan */
 "Friday" = "fredag";
 
+/* german */
+"German translation by: Andre Voigtmann" = "Tysk oversettelse av: Andre Voigtmann";
+
 /* Restore */
 "Getting info, please wait..." = "Henter informasjon, vennligst vent...";
 
-/* Verify */
-"Getting information, please wait ..." = "Henter informasjon, vennligst vent";
+/* Loggdata */
+"Got index from Snapshots and listing logs for one configuration..." = "Hentet index fra Snapshots og lister logg for en konfigurasjon...";
 
 /* Loggdata */
-"Got index from Execute and listing logs for one configuration..." = "Hentet index fra Utfør og lister logg for en konfigurasjon ";
+"Got index from Synchronize and listing logs for one configuration..." = "Hentet index fra Synkroniser og lister logg for en konfigurasjon...";
 
 /* Schedules */
-"Got index from Execute..." = "Hentet index fra Utfør";
+"Got index from Synchronize..." = "Hentet index fra Synkroniser...";
 
-/* Loggdata */
-"Got index from Snapshots and listing logs for one configuration..." = "Hentet index fra Snapshots og lister logg for en konfigurasjon ";
-
-/* Remote Info
-   Restore */
+/* Remote Info */
 "Got it..." = "Info hentet...";
 
 /* datetime */
 "h" = "t";
 
-/* datetime */
-"hours" = "timer";
-
 /* icon */
 "Icon by: Zsolt Sándor" = "Icon av: Zsolt Sándor";
+
+/* italian */
+"Italian translation by: Stefano Steve Cutelle'" = "Italinsk oversettelse av: Stefano Steve Cutelle'";
+
+/* Logg */
+"JSON file exists: " = "JSON filen finnes: ";
 
 /* plan */
 "Keep" = "Behold";
@@ -159,14 +228,20 @@
 /* plan */
 "last" = "siste";
 
-/* Profile */
+/* Toolbar */
+"List all profiles and configurations..." = "List alle profiler og konfigurasjoner...";
+
+/* No comment provided by engineer. */
 "Load" = "Last";
 
 /* Remote info
    Remote Info */
 "Loaded cached data..." = "Lastet cached info...";
 
-/* Copy files */
+/* Tooltip */
+"Local catalog:" = "Lokal katalog:";
+
+/* Restore */
 "Local or remote catalog cannot be empty..." = "Lokal og ekstern må fylles ut...";
 
 /* main */
@@ -175,20 +250,17 @@
 /* Execute */
 "Menu app is running..." = "Meny appen kjører...";
 
-/* datetime */
-"mins" = "min";
-
 /* plan */
 "Monday" = "mandag";
+
+/* Userconfig */
+"New format is not equal to current." = "Nytt format er ikke lik gjeldende format.";
 
 /* Execute */
 "New version is available - see About" = "Ny versjon er tilgjengelig - se Om";
 
 /* About */
 "New version is available:" = "Ny versjon er tilgjengelig:";
-
-/* Execute */
-"No rclone config found..." = "Ingen rclone konfigurasjon funnet";
 
 /* Execute */
 "No rsync in path..." = "Ingen rsync i sti...";
@@ -199,8 +271,8 @@
 /* Schedule details */
 "no stopdate" = "ingen stopp dato";
 
-/* Copy files */
-"No such local catalog for restore or set it in user config..." = "Ingen slik lokal katalog for restore eller sett den i bruker preferanser...";
+/* Restore */
+"No such temporay catalog for restore, set it in user config." = "Ingen slik lokal katalog for gjenopprett eller sett den i bruker preferanser.";
 
 /* plan */
 "none" = "ingen";
@@ -208,8 +280,8 @@
 /* norwegian */
 "Norwegian translation by: Thomas Evensen" = "Norsk oversettelse av: Thomas Evensen";
 
-/* Copy files */
-"Not a remote task, use Finder to copy files..." = "Ikke en ekstern oppgave, bruk Finder for å kopiere filer...";
+/* Restore */
+"Not a remote task, use Finder to copy files..." = "Ikke en ekstern oppgave, bruk Finder for å gjenopprette filer...";
 
 /* Snapshots */
 "Not a snapshot task..." = "Ikke en snapshot oppgave...";
@@ -220,11 +292,11 @@
 /* Logg */
 "Number of logs:" = "Antall logger:";
 
+/* Restore */
+"Number of remote files:" = "Antall eksterne filer:";
+
 /* Remote info */
 "Number of tasks to estimate:" = "Antall oppgaver å estimere:";
-
-/* Copy files */
-"Number remote files:" = "Antall filer:";
 
 /* Snapshots */
 "Number snapshots:" = "Antall snapshots:";
@@ -232,11 +304,14 @@
 /* main */
 "once" = "engang";
 
-/* Execute */
-"Only valid for backup, snapshot and combined tasks..." = "Kun gyldig for backup, snapshot og kombinerte oppgaver...";
+/* Sidebar */
+"Once" = "Engang";
 
-/* Verify */
-"Please select a task in Execute ..." = "Velg en oppgave i Utfør";
+/* Sidebar */
+"Parameter" = "Parameter";
+
+/* Logg */
+"PLIST file exists: " = "PLIST-fil finnes: ";
 
 /* Execute */
 "Possible error logging..." = "Mulig feil logging...";
@@ -250,53 +325,86 @@
 /* Execute */
 "Profile: please wait..." = "Profil: vennligst vent...";
 
+/* Userconfig */
+"Reboot" = "Omstart";
+
+/* Sidebar */
+"Remote" = "Ekstern";
+
+/* Tooltip */
+"Remote catalog:" = "Ekstern katalog:";
+
+/* Sidebar */
+"Reset" = "Reset";
+
+/* Restore
+   Sidebar */
+"Restore" = "Gjenopprett";
+
 /* Restore */
-"Restore" = "Kopi";
+"Restore completed..." = "Gjenopprett er utført...";
 
 /* plan */
 "Saturday" = "lørdag";
 
-/* Profile
+/* Logg
+   Sidebar
    Userconfig */
 "Save" = "Lagre";
 
 /* Schedules */
 "Scheduled tasks in menu app..." = "Planlagte oppgaver i meny app...";
 
-/* datetime */
-"secs" = "sek";
-
 /* Copy files
    Remote Info
    Verify */
 "Seems not to be connected..." = "Synes ikke å være tilgjengelig...";
 
+/* Restore */
+"Seems to be nothing to restore" = "Virker ikke å være noe å gjenopprette";
+
 /* Execute */
 "Select a task...." = "Velg en oppgave...";
+
+/* Execute */
+"Select one or more tasks..." = "Velg en eller flere oppgaver...";
 
 /* Logg */
 "Selected logs:" = "Valgte logger:";
 
-/* Execute */
-"Selection out of range - aborting" = "Utvalg ikke mulig - avslutter";
-
 /* Snapshots */
 "Seriously, enter a real number..." = "Seriøst, legg inn et nummer...";
 
+/* Toolbar */
+"Show userconfig..." = "Vis brukerkonfigurasjon...";
+
 /* Restore */
-"Start restore?" = "Start kopi?";
+"Simulated: execute restore of files to temporary restore path" = "Simulert: utfør gjenopprett av filer til midlertidig sti for gjenopprett";
+
+/* Tooltip */
+"Source catalog:" = "Ekstern katalog:";
+
+/* Restore */
+"Start" = "Start";
+
+/* Restore */
+"Start getting files?" = "Hente filer?";
+
+/* Restore */
+"Start restore?" = "Start gjenopprett?";
 
 /* main */
 "stopped" = "stoppet";
 
-/* plan */
+/* dayofweek
+   plan */
 "Sunday" = "søndag";
+
+/* Execute */
+"The menu app" = "Meny app";
 
 /* Quickbackup */
 "There seems to be nothing to do..." = "Her er det ikke noe å gjøre...";
-
-/* Execute */
-"This is a combined task, execute by ⌘R..." = "Kombinert oppgave, kjør med ⌘R";
 
 /* New */
 "This is added before?" = "Denne er lagt til tidligere?";
@@ -313,14 +421,17 @@
 /* plan */
 "Tuesday" = "tirsdag";
 
-/* Verify */
-"Verifying, please wait..." = "Verifiserer, vennligst vent...";
+/* Sidebar */
+"Update" = "Oppdater";
 
 /* plan */
 "Wednesday" = "onsdag";
 
 /* main */
 "weekly" = "ukentlig";
+
+/* Sidebar */
+"Weekly" = "Ukentlig";
 
 /* Snapshots */
 "You cannot delete that many, max are" = "Du kan ikke slette så mange, max er";

@@ -7,15 +7,14 @@
 //
 // swiftlint:disable line_length
 
-import XCTest
 @testable import RsyncOSX
+import XCTest
 
 class RsyncOSXTests: XCTestCase, SetConfigurations, SetSchedules {
-
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-         _ = Selectprofile(profile: "XCTest")
-        ViewControllerReference.shared.restorePath = "/temporaryrestore"
+        _ = Selectprofile(profile: "XCTest", selectedindex: nil)
+        ViewControllerReference.shared.temporarypathforrestore = "/temporaryrestore"
         ViewControllerReference.shared.checkinput = true
     }
 
@@ -29,8 +28,8 @@ class RsyncOSXTests: XCTestCase, SetConfigurations, SetSchedules {
     }
 
     func testnumberofconfigurations() {
-        let count = self.configurations?.getConfigurations().count
-        XCTAssertEqual(count, 2, "Should be equal to 2")
+        let count = self.configurations?.getConfigurations()?.count
+        XCTAssertEqual(count, 4, "Should be equal to 4")
     }
 
     func testargumentsdryrun() {
@@ -68,29 +67,33 @@ class RsyncOSXTests: XCTestCase, SetConfigurations, SetSchedules {
     }
 
     func testargumentsrestore0() {
-          let arguments = ["--archive", "--verbose", "--compress", "--delete", "-e", "ssh -p 22", "--exclude=.git",
-          "--backup", "--backup-dir=../backup_XCTest", "--suffix=_$(date +%Y-%m-%d.%H.%M)",
-          "--stats", "thomas@10.0.0.57:/backup2/RsyncOSX/XCTest/", "/Users/thomas/XCTest/"]
-          XCTAssertEqual(arguments, self.configurations?.arguments4restore(index: 0, argtype: .arg),
-                         "Arguments should be equal")
-      }
+        let arguments = ["--archive", "--verbose", "--compress", "--delete", "-e", "ssh -p 22", "--exclude=.git",
+                         "--backup", "--backup-dir=../backup_XCTest", "--suffix=_$(date +%Y-%m-%d.%H.%M)",
+                         "--stats", "thomas@10.0.0.57:/backup2/RsyncOSX/XCTest/", "/Users/thomas/XCTest/"]
+        XCTAssertEqual(arguments, self.configurations?.arguments4restore(index: 0, argtype: .arg),
+                       "Arguments should be equal")
+    }
 
     func testargumentsrestoretmp0() {
         let arguments = ["--archive", "--verbose", "--compress", "--delete", "-e", "ssh -p 22", "--exclude=.git",
-        "--backup", "--backup-dir=../backup_XCTest", "--suffix=_$(date +%Y-%m-%d.%H.%M)",
-        "--stats", "thomas@10.0.0.57:/backup2/RsyncOSX/XCTest/", "/temporaryrestore"]
+                         "--backup", "--backup-dir=../backup_XCTest", "--suffix=_$(date +%Y-%m-%d.%H.%M)",
+                         "--stats", "thomas@10.0.0.57:/backup2/RsyncOSX/XCTest/", "/temporaryrestore"]
         XCTAssertEqual(arguments, self.configurations?.arguments4tmprestore(index: 0, argtype: .arg),
-                         "Arguments should be equal")
+                       "Arguments should be equal")
     }
 
-    func testalllogs() {
-        let schedules = ScheduleLoggData(sortascending: true)
-        XCTAssertEqual(1, schedules.loggdata?.count, "Should be one")
+    func testargumentssyncremoterealrun() {
+        let arguments = ["--archive", "--verbose", "--compress", "--delete", "-e", "ssh -p 22", "--exclude=.git",
+                         "--stats", "thomas@web:~/remotecatalog/", "/Users/thomas/localcatalog/"]
+        XCTAssertEqual(arguments, self.configurations?.arguments4rsync(index: 2, argtype: .arg),
+                       "Arguments should be equal")
     }
 
-    func testselectedlog() {
-        let schedules = ScheduleLoggData(hiddenID: 2, sortascending: true)
-        XCTAssertEqual(1, schedules.loggdata?.count, "Should be one")
+    func testargumentssnapshot() {
+        let arguments = ["--archive", "--verbose", "--compress", "--delete", "-e", "ssh -i ~/.ssh_rsyncosx/rsyncosx -p 22",
+                         "--stats", "--link-dest=~/XCTest/99", "/Users/thomas/XCTest/", "thomas@10.0.0.57:~/XCTest/100"]
+        XCTAssertEqual(arguments, self.configurations?.arguments4rsync(index: 3, argtype: .arg),
+                       "Arguments should be equal")
     }
 
     func testnologg() {
@@ -98,22 +101,32 @@ class RsyncOSXTests: XCTestCase, SetConfigurations, SetSchedules {
         XCTAssertEqual(0, schedules.loggdata?.count, "Should be zero")
     }
 
-    func testschedule() {
+    func testaddschedule() {
         let schedules = SchedulesXCTEST(profile: "XCTest")
-        let today: Date = Date()
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)
+        let today = Date()
+        let tomorrow = Calendar.current.date(byAdding: .hour, value: 12, to: today)
+        let dayaftertomorrow = Calendar.current.date(byAdding: .day, value: 2, to: today)
+        schedules.addschedule(hiddenID: 1, schedule: .daily, start: dayaftertomorrow!)
+        schedules.addschedule(hiddenID: 1, schedule: .weekly, start: dayaftertomorrow!)
         schedules.addschedule(hiddenID: 1, schedule: .once, start: tomorrow!)
-        schedules.addschedule(hiddenID: 1, schedule: .daily, start: tomorrow!)
-        schedules.addschedule(hiddenID: 1, schedule: .weekly, start: tomorrow!)
-        XCTAssertEqual(3, schedules.getSchedule().count, "Should be three")
+        XCTAssertEqual(3, schedules.getSchedule()?.count, "Should be three")
         let schedulesortedandexpanded = ScheduleSortedAndExpand(schedules: schedules)
-        XCTAssertEqual("23h 59m", schedulesortedandexpanded.sortandcountscheduledonetask(1, profilename: nil, number: true), "23h 59m")
+        XCTAssertEqual("11t 59m", schedulesortedandexpanded.sortandcountscheduledonetask(1, profilename: nil, number: true), "11t 59m")
     }
 
-    func testreorgschedules() {
-        _ = Selectprofile(profile: "Datacheck")
-        ViewControllerReference.shared.restorePath = "/temporaryrestore"
+    func testreorgschedulesbefore() {
+        ViewControllerReference.shared.temporarypathforrestore = "/temporaryrestore"
+        ViewControllerReference.shared.checkinput = false
+        _ = Selectprofile(profile: "Datacheck", selectedindex: nil)
+        let count = CountSchedulesandLogs()
+        XCTAssertEqual(19, count.schedulerecords, "Should be 19")
+        XCTAssertEqual(299, count.logrecords, "Should be 299")
+    }
+
+    func testreorgschedulesafter() {
+        ViewControllerReference.shared.temporarypathforrestore = "/temporaryrestore"
         ViewControllerReference.shared.checkinput = true
+        _ = Selectprofile(profile: "Datacheck", selectedindex: nil)
         let count = CountSchedulesandLogs()
         XCTAssertEqual(10, count.schedulerecords, "Should be 10")
         XCTAssertEqual(299, count.logrecords, "Should be 299")

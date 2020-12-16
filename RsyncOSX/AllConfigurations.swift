@@ -5,84 +5,41 @@
 //  Created by Thomas Evensen on 04.03.2018.
 //  Copyright © 2018 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable line_length
 
 import Foundation
 
 final class AllConfigurations: Sorting {
-
-    private var allconfigurations: [Configuration]?
-    var allconfigurationsasdictionary: [NSMutableDictionary]?
+    var allconfigurations: [Configuration]?
     private var allprofiles: [String]?
 
     private func readallconfigurations() {
-        guard self.allprofiles != nil else { return }
         var configurations: [Configuration]?
-        for i in 0 ..< self.allprofiles!.count {
-            let profile = self.allprofiles![i]
+        for i in 0 ..< (self.allprofiles?.count ?? 0) {
+            let profile = self.allprofiles?[i]
             if self.allconfigurations == nil {
-                self.allconfigurations = []
+                self.allconfigurations = [Configuration]()
             }
             if profile == NSLocalizedString("Default profile", comment: "default profile") {
-                configurations = PersistentStorageAllprofilesAPI(profile: nil).getConfigurations()
+                configurations = PersistentStorageAllprofilesAPI(profile: nil).getallconfigurations()
             } else {
-                configurations = PersistentStorageAllprofilesAPI(profile: profile).getConfigurations()
+                configurations = PersistentStorageAllprofilesAPI(profile: profile).getallconfigurations()
             }
             guard configurations != nil else { return }
-            for j in 0 ..< configurations!.count {
-                configurations![j].profile = profile
-                self.allconfigurations!.append(configurations![j])
+            for j in 0 ..< (configurations?.count ?? 0) {
+                configurations?[j].profile = profile
+                if let config = configurations?[j] {
+                    self.allconfigurations?.append(config)
+                }
             }
         }
-    }
-
-    private func setConfigurationsDataSourcecountBackupSnapshot() {
-        guard self.allconfigurations != nil else { return }
-        var configurations: [Configuration] = self.allconfigurations!.filter({return ($0.task == ViewControllerReference.shared.synchronize || $0.task == ViewControllerReference.shared.snapshot )})
-        var data = [NSMutableDictionary]()
-        for i in 0 ..< configurations.count {
-            if configurations[i].offsiteServer.isEmpty == true {
-                configurations[i].offsiteServer = "localhost"
-            }
-            var date: String = ""
-            let stringdate = configurations[i].dateRun ?? ""
-            if stringdate.isEmpty == false {
-                date = stringdate.en_us_date_from_string().localized_string_from_date()
-            }
-            let row: NSMutableDictionary = [
-                "profile": configurations[i].profile ?? "",
-                "task": configurations[i].task,
-                "hiddenID": configurations[i].hiddenID,
-                "localCatalog": configurations[i].localCatalog,
-                "offsiteCatalog": configurations[i].offsiteCatalog,
-                "offsiteServer": configurations[i].offsiteServer,
-                "offsiteUsername": configurations[i].offsiteUsername,
-                "backupID": configurations[i].backupID,
-                "dateExecuted": date,
-                "daysID": configurations[i].dayssincelastbackup ?? "",
-                "markdays": configurations[i].markdays,
-                "selectCellID": 0
-            ]
-            data.append(row)
-        }
-        self.allconfigurationsasdictionary = data
-    }
-
-    // Function for filter
-    func myownfilter(search: String?, filterby: Sortandfilter?) {
-        guard search != nil && self.allconfigurationsasdictionary != nil && filterby != nil else { return }
-        globalDefaultQueue.async(execute: {() -> Void in
-            let valueforkey = self.filterbystring(filterby: filterby!)
-            let filtereddata = self.allconfigurationsasdictionary?.filter({
-                ($0.value(forKey: valueforkey) as? String)?.contains(search ?? "") ?? false
-            })
-            self.allconfigurationsasdictionary = filtereddata
-        })
     }
 
     init() {
         self.allprofiles = AllProfilenames().allprofiles
         self.readallconfigurations()
-        self.setConfigurationsDataSourcecountBackupSnapshot()
+    }
+
+    deinit {
+        print("deinit AllConfigurations")
     }
 }

@@ -1,0 +1,409 @@
+/* Restore */
+" ... set in User configuration ..." = " ... set in User configuration ...";
+
+/* Execute */
+"⌘A to abort or wait..." = "⌘A to abort or wait...";
+
+/* Snapshots */
+"Aborting delete operation..." = "Aborting delete operation...";
+
+/* Add schedule
+   New */
+"Add" = "Add";
+
+/* New */
+"Add config?" = "Add config?";
+
+/* Add schedule */
+"Add Schedule?" = "Add Schedule?";
+
+/* Tooltip */
+"By using Finder drag and drop filepaths." = "By using Finder drag and drop filepaths.";
+
+/* Cancel NSAlert */
+"Cancel" = "Cancel";
+
+/* Add schedule */
+"Cancel or Add" = "Cancel or Add";
+
+/* Userconfig */
+"Cancel or Continue?" = "Cancel or Continue?";
+
+/* Execute
+   Logg
+   Profiles
+   Snapshots */
+"Cancel or Delete" = "Cancel or Delete";
+
+/* Userconfig */
+"Cancel or Reboot?" = "Cancel or Reboot?";
+
+/* Restore */
+"Cancel or Restore" = "Cancel or Restore";
+
+/* Logg */
+"Cancel or Save" = "Cancel or Save";
+
+/* Restore */
+"Cannot copy from a syncremote task..." = "Cannot copy from a syncremote task...";
+
+/* Verify */
+"Cannot verify a syncremote task..." = "Cannot verify a syncremote task...";
+
+/* chinese */
+"Chinese (Simplified) translation by: StringKe (Chen)" = "Chinese (Simplified) translation by: StringKe (Chen)";
+
+/* Snapshots */
+"Cleaning logs completed..." = "Cleaning logs completed...";
+
+/* Close NSAlert */
+"Close" = "Close";
+
+/* Verify */
+"Completed ..." = "Completed ...";
+
+/* Verify */
+"Computing changed, please wait..." = "Computing changed, please wait...";
+
+/* Userconfig */
+"Continue" = "Continue";
+
+/* Restore */
+"Copy single files or directory?" = "Copy single files or directory?";
+
+/* copyright */
+"Copyright ©2020 Thomas Evensen" = "Copyright ©2020 Thomas Evensen";
+
+/* main */
+"daily" = "daily";
+
+/* Remote Info
+   Verify */
+"Date last synchronize:" = "Date last synchronize:";
+
+/* datetime */
+"days" = "days";
+
+/* Remote Info
+   Verify */
+"Days since last synchronize:" = "Days since last synchronize:";
+
+/* default profile */
+"Default profile" = "Default profile";
+
+/* Execute
+   Logg
+   plan
+   Profiles
+   Snapshots */
+"Delete" = "Delete";
+
+/* plan */
+"Delete number of snapshots:" = "Delete number of snapshots:";
+
+/* Snapshots */
+"Delete operation completed..." = "Delete operation completed...";
+
+/* Profiles */
+"Delete profile:" = "Delete profile:";
+
+/* Execute */
+"Delete selected task?" = "Delete selected task?";
+
+/* plan */
+"Delete snapshots older than:" = "Delete snapshots older than:";
+
+/* Tooltip */
+"Destination catalog:" = "Destination catalog:";
+
+/* Snapshots */
+"Do you REALLY want to delete selected snapshots" = "Do you REALLY want to delete selected snapshots";
+
+/* Restore */
+"Do you REALLY want to start a restore?" = "Do you REALLY want to start a restore?";
+
+/* Snapshots */
+"Dont change the snapshot num if you don´t know what you are doing..." = "Dont change the snapshot num if you don´t know what you are doing...";
+
+/* ducth */
+"Ducth translation by: Marcellino Santoso" = "Ducth translation by: Marcellino Santoso";
+
+/* plan */
+"earlier months" = "earlier months";
+
+/* Error rsync */
+"ERROR: no rsync in" = "ERROR: no rsync in";
+
+/* Error rsync */
+"ERROR: no rsync in /usr/local/bin" = "ERROR: no rsync in /usr/local/bin";
+
+/* Remote info */
+"Estimation completed" = "Estimation completed";
+
+/* plan */
+"every" = "every";
+
+/* Restore */
+"Executing restore..." = "Executing restore...";
+
+/* Restore */
+"Filelist for snapshot tasks might be huge?" = "Filelist for snapshot tasks might be huge?";
+
+/* Userconfig */
+"Format of config files is about to be changed to JSON." = "Format of config files is about to be changed to JSON.";
+
+/* Userconfig */
+"Format of config files is about to be changed to PLIST." = "Format of config files is about to be changed to PLIST.";
+
+/* plan */
+"Friday" = "Friday";
+
+/* german */
+"German translation by: Andre Voigtmann" = "German translation by: Andre Voigtmann";
+
+/* Restore */
+"Getting info, please wait..." = "Getting info, please wait...";
+
+/* Loggdata */
+"Got index from Snapshots and listing logs for one configuration..." = "Got index from Snapshots and listing logs for one configuration...";
+
+/* Loggdata */
+"Got index from Synchronize and listing logs for one configuration..." = "Got index from Synchronize and listing logs for one configuration...";
+
+/* Schedules */
+"Got index from Synchronize..." = "Got index from Synchronize...";
+
+/* Remote Info */
+"Got it..." = "Got it...";
+
+/* datetime */
+"h" = "h";
+
+/* datetime */
+"hours" = "hours";
+
+/* icon */
+"Icon by: Zsolt Sándor" = "Icon by: Zsolt Sándor";
+
+/* indonesian */
+"Indonesian translation by: Marcellino Santoso" = "Indonesian translation by: Marcellino Santoso";
+
+/* italian */
+"Italian translation by: Stefano Steve Cutelle'" = "Italian translation by: Stefano Steve Cutelle'";
+
+/* Logg */
+"JSON file exists: " = "JSON file exists: ";
+
+/* plan */
+"Keep" = "Keep";
+
+/* plan */
+"last" = "last";
+
+/* Profile */
+"Load" = "Load";
+
+/* Remote info
+   Remote Info */
+"Loaded cached data..." = "Loaded cached data...";
+
+/* Tooltip */
+"Local catalog:" = "Local catalog:";
+
+/* Restore */
+"Local or remote catalog cannot be empty..." = "Local or remote catalog cannot be empty...";
+
+/* main */
+"manuel" = "manuel";
+
+/* Execute */
+"Menu app is running..." = "Menu app is running...";
+
+/* datetime */
+"mins" = "mins";
+
+/* plan */
+"Monday" = "Monday";
+
+/* Userconfig */
+"New format is not equal to current." = "New format is not equal to current.";
+
+/* Execute */
+"New version is available - see About" = "New version is available - see About";
+
+/* About */
+"New version is available:" = "New version is available:";
+
+/* Execute */
+"No rsync in path..." = "No rsync in path...";
+
+/* Schedule details */
+"no startdate" = "no startdate";
+
+/* Schedule details */
+"no stopdate" = "no stopdate";
+
+/* Restore */
+"No such temporay catalog for restore, set it in user config." = "No such temporay catalog for restore, set it in user config.";
+
+/* plan */
+"none" = "none";
+
+/* norwegian */
+"Norwegian translation by: Thomas Evensen" = "Norwegian translation by: Thomas Evensen";
+
+/* Restore */
+"Not a remote task, use Finder to copy files..." = "Not a remote task, use Finder to copy files...";
+
+/* Snapshots */
+"Not a snapshot task..." = "Not a snapshot task...";
+
+/* AllProfiles */
+"Number of configurations:" = "Number of configurations:";
+
+/* Logg */
+"Number of logs:" = "Number of logs:";
+
+/* Restore */
+"Number of remote files:" = "Number of remote files:";
+
+/* Remote info */
+"Number of tasks to estimate:" = "Number of tasks to estimate:";
+
+/* Snapshots */
+"Number snapshots:" = "Number snapshots:";
+
+/* main */
+"once" = "once";
+
+/* Verify */
+"Please select a task in Synchronize ..." = "Please select a task in Synchronize ...";
+
+/* Logg */
+"PLIST file exists: " = "PLIST file exists: ";
+
+/* Execute */
+"Possible error logging..." = "Possible error logging...";
+
+/* plan */
+"previous month" = "previous month";
+
+/* Execute */
+"Profile:" = "Profile:";
+
+/* Execute */
+"Profile: please wait..." = "Profile: please wait...";
+
+/* Userconfig */
+"Reboot" = "Reboot";
+
+/* Tooltip */
+"Remote catalog:" = "Remote catalog:";
+
+/* Restore */
+"Restore" = "Restore";
+
+/* Restore */
+"Restore completed..." = "Restore completed...";
+
+/* plan */
+"Saturday" = "Saturday";
+
+/* Logg
+   Profile
+   Userconfig */
+"Save" = "Save";
+
+/* Schedules */
+"Scheduled tasks in menu app..." = "Scheduled tasks in menu app...";
+
+/* datetime */
+"secs" = "secs";
+
+/* Copy files
+   Remote Info
+   Verify */
+"Seems not to be connected..." = "Seems not to be connected...";
+
+/* Restore */
+"Seems to be nothing to restore" = "Seems to be nothing to restore";
+
+/* Execute */
+"Select a task...." = "Select a task....";
+
+/* Execute */
+"Select one or more tasks..." = "Select one or more tasks...";
+
+/* Logg */
+"Selected logs:" = "Selected logs:";
+
+/* Execute */
+"Selection out of range - aborting" = "Selection out of range - aborting";
+
+/* Snapshots */
+"Seriously, enter a real number..." = "Seriously, enter a real number...";
+
+/* Restore */
+"Simulated: execute full restore to SOURCE" = "Simulated: execute full restore to SOURCE";
+
+/* Restore */
+"Simulated: execute full restore to temporary restore path" = "Simulated: execute full restore to temporary restore path";
+
+/* Restore */
+"Simulated: execute restore of files to temporary restore path" = "Simulated: execute restore of files to temporary restore path";
+
+/* Tooltip */
+"Source catalog:" = "Source catalog:";
+
+/* Restore */
+"Start" = "Start";
+
+/* Restore */
+"Start getting files?" = "Start getting files?";
+
+/* Restore */
+"Start restore?" = "Start restore?";
+
+/* main */
+"stopped" = "stopped";
+
+/* dayofweek
+   plan */
+"Sunday" = "Sunday";
+
+/* Execute */
+"The menu app" = "The menu app";
+
+/* Quickbackup */
+"There seems to be nothing to do..." = "There seems to be nothing to do...";
+
+/* New */
+"This is added before?" = "This is added before?";
+
+/* plan */
+"this month" = "this month";
+
+/* plan */
+"this week" = "this week";
+
+/* plan */
+"Thursday" = "Thursday";
+
+/* plan */
+"Tuesday" = "Tuesday";
+
+/* Verify */
+"Verifying, please wait..." = "Verifying, please wait...";
+
+/* plan */
+"Wednesday" = "Wednesday";
+
+/* main */
+"weekly" = "weekly";
+
+/* Snapshots */
+"You cannot delete that many, max are" = "You cannot delete that many, max are";
+
+/* About */
+"You have the latest ..." = "You have the latest ...";
+

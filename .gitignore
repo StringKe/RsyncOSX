@@ -30,6 +30,7 @@ xcuserdata/
 *.ipa
 *.dSYM.zip
 *.dSYM
+info.plist
 
 ## Playgrounds
 timeline.xctimeline
@@ -73,7 +74,5 @@ fastlane/test_output
 *.xcuserstate
 
 *.xcbkptlist
-
-RsyncOSX/\.DS_Store
-
-RsyncOSX/Assets\.xcassets/\.DS_Store
+.DS_Store
+SourcePackages

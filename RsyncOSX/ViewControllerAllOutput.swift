@@ -7,27 +7,43 @@
 //
 //  swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
 class ViewControllerAllOutput: NSViewController, Delay {
-
-    @IBOutlet weak var outputtable: NSTableView!
+    @IBOutlet var outputtable: NSTableView!
     weak var getoutputDelegate: ViewOutputDetails?
+    var logging: Logging?
+    @IBOutlet var rsyncorlog: NSSwitch!
+    @IBOutlet var outputrsyncorlofile: NSTextField!
+
+    @IBAction func rsyncorlogfile(_: NSButton) {
+        if self.rsyncorlog.state == .on {
+            self.outputrsyncorlofile.stringValue = "Rsync output..."
+            self.getoutputDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        } else {
+            self.outputrsyncorlofile.stringValue = "Logfile..."
+            self.logging = Logging()
+            self.getoutputDelegate = self.logging
+        }
+        globalMainQueue.async { () -> Void in
+            self.outputtable.reloadData()
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         ViewControllerReference.shared.setvcref(viewcontroller: .vcalloutput, nsviewcontroller: self)
-        self.getoutputDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
         self.outputtable.delegate = self
         self.outputtable.dataSource = self
     }
 
     override func viewDidAppear() {
         super.viewDidAppear()
-        globalMainQueue.async(execute: { () -> Void in
+        self.getoutputDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        globalMainQueue.async { () -> Void in
             self.outputtable.reloadData()
-        })
+        }
     }
 
     override func viewDidDisappear() {
@@ -35,29 +51,60 @@ class ViewControllerAllOutput: NSViewController, Delay {
         ViewControllerReference.shared.setvcref(viewcontroller: .vcalloutput, nsviewcontroller: nil)
     }
 
+    @IBAction func pastetabeltomacospasteboard(_: NSButton) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        for i in 0 ..< (self.getoutputDelegate?.getalloutput().count ?? 0) {
+            pasteboard.writeObjects([(self.getoutputDelegate?.getalloutput()[i])! as NSPasteboardWriting])
+        }
+    }
+
+    @IBAction func newcleanlogfile(_: NSButton) {
+        self.outputrsyncorlofile.stringValue = "Logfile..."
+        self.rsyncorlog.state = .off
+        self.logging = Logging(nil, false)
+        self.getoutputDelegate = self.logging
+        globalMainQueue.async { () -> Void in
+            self.outputtable.reloadData()
+        }
+    }
+
+    @IBAction func closeview(_: NSButton) {
+        self.view.window?.close()
+    }
 }
 
 extension ViewControllerAllOutput: NSTableViewDataSource {
-    func numberOfRows(in aTableView: NSTableView) -> Int {
+    func numberOfRows(in _: NSTableView) -> Int {
         return self.getoutputDelegate?.getalloutput().count ?? 0
     }
 }
 
 extension ViewControllerAllOutput: NSTableViewDelegate {
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func tableView(_ tableView: NSTableView, viewFor _: NSTableColumn?, row: Int) -> NSView? {
         if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "outputID"), owner: nil) as? NSTableCellView {
+            guard row < self.getoutputDelegate?.getalloutput().count ?? 0 else { return nil }
             cell.textField?.stringValue = self.getoutputDelegate?.getalloutput()[row] ?? ""
             return cell
         } else {
-             return nil
+            return nil
         }
     }
 }
 
 extension ViewControllerAllOutput: Reloadandrefresh {
     func reloadtabledata() {
-        globalMainQueue.async(execute: { () -> Void in
-            self.outputtable.reloadData()
-        })
+        if self.rsyncorlog.state == .on {
+            self.getoutputDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+            globalMainQueue.async { () -> Void in
+                self.outputtable.reloadData()
+            }
+        } else {
+            self.logging = Logging()
+            self.getoutputDelegate = self.logging
+            globalMainQueue.async { () -> Void in
+                self.outputtable.reloadData()
+            }
+        }
     }
 }

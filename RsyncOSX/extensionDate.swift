@@ -10,8 +10,7 @@
 import Foundation
 
 extension Date {
-
-    func weekday(date: Date) -> Int {
+    func weekday(date _: Date) -> Int {
         let calendar = Calendar.current
         let dateComponent = (calendar as NSCalendar).components(.weekday, from: self)
         return dateComponent.weekday!
@@ -23,14 +22,14 @@ extension Date {
         return days.length
     }
 
-    func dateByAddingMonths(_ months: Int ) -> Date {
+    func dateByAddingMonths(_ months: Int) -> Date {
         let calendar = Calendar.current
         var dateComponent = DateComponents()
         dateComponent.month = months
         return (calendar as NSCalendar).date(byAdding: dateComponent, to: self, options: NSCalendar.Options.matchNextTime)!
     }
 
-    func dateByAddingDays(_ days: Int ) -> Date {
+    func dateByAddingDays(_ days: Int) -> Date {
         let calendar = Calendar.current
         var dateComponent = DateComponents()
         dateComponent.day = days
@@ -57,7 +56,7 @@ extension Date {
 
     func getWeekday() -> Int {
         let calendar = Calendar.current
-        return (calendar as NSCalendar).components( .weekday, from: self).weekday!
+        return (calendar as NSCalendar).components(.weekday, from: self).weekday!
     }
 
     func isSelectedDayofWeek(day: NumDayofweek) -> Bool {
@@ -106,7 +105,7 @@ extension Date {
         return rhs.compare(lhs) == ComparisonResult.orderedAscending
     }
 
-    func ispreviosmonth() -> Bool {
+    var ispreviousmont: Bool {
         let calendar = Calendar.current
         let yearComponent = (calendar as NSCalendar).components(.year, from: self)
         let monthComponent = (calendar as NSCalendar).components(.month, from: self)
@@ -114,47 +113,26 @@ extension Date {
         let todayComponentyear = (calendar as NSCalendar).components(.year, from: today)
         let todaymonthComponent = (calendar as NSCalendar).components(.month, from: today)
         if yearComponent == todayComponentyear {
-            if monthComponent.month! == todaymonthComponent.month! - 1 {
+            if (monthComponent.month ?? -1) == (todaymonthComponent.month ?? -1) - 1 {
                 return true
             }
         }
         return false
     }
 
-    func isearliermonth() -> Bool {
-        let calendar = Calendar.current
-        let yearComponent = (calendar as NSCalendar).components(.year, from: self)
-        let monthComponent = (calendar as NSCalendar).components(.month, from: self)
-        let today = Date()
-        let todayComponentyear = (calendar as NSCalendar).components(.year, from: today)
-        let todaymonthComponent = (calendar as NSCalendar).components(.month, from: today)
-        if yearComponent.year! <= todayComponentyear.year! {
-            if monthComponent.month! < todaymonthComponent.month! - 1 {
-                return true
-            }
-        }
-        return false
+    var secondstonow: Int {
+        let components = Set<Calendar.Component>([.second])
+        return Calendar.current.dateComponents(components, from: self, to: Date()).second ?? 0
     }
 
-    // Returns a DateComponent value with number of days away from a specified date
-    var dayssincenow: DateComponents {
-        let now = Date()
-        let dateformatter = DateFormatter()
-        dateformatter.locale = Locale(identifier: "en_US")
-        dateformatter.dateStyle = .medium
-        dateformatter.timeStyle = .short
-        dateformatter.dateFormat = "dd MMM yyyy HH:mm"
-        return Calendar.current.dateComponents([.day], from: self, to: now)
+    var daystonow: Int {
+        let components = Set<Calendar.Component>([.day])
+        return Calendar.current.dateComponents(components, from: self, to: Date()).day ?? 0
     }
 
-    var weekssincenowplusoneweek: DateComponents {
-        let now = Date()
-        let dateformatter = DateFormatter()
-        dateformatter.locale = Locale(identifier: "en_US")
-        dateformatter.dateStyle = .medium
-        dateformatter.timeStyle = .short
-        dateformatter.dateFormat = "dd MMM yyyy HH:mm"
-        return Calendar.current.dateComponents([.weekOfYear], from: self, to: now.dateByAddingDays(7))
+    var weekstonow: Int {
+        let components = Set<Calendar.Component>([.weekOfYear])
+        return Calendar.current.dateComponents(components, from: self, to: Date()).weekOfYear ?? 0
     }
 
     func localized_string_from_date() -> String {
@@ -165,12 +143,30 @@ extension Date {
         return dateformatter.string(from: self)
     }
 
+    func long_localized_string_from_date() -> String {
+        let dateformatter = DateFormatter()
+        dateformatter.formatterBehavior = .behavior10_4
+        dateformatter.dateStyle = .medium
+        dateformatter.timeStyle = .long
+        return dateformatter.string(from: self)
+    }
+
     func en_us_string_from_date() -> String {
         let dateformatter = DateFormatter()
         dateformatter.locale = Locale(identifier: "en_US")
         dateformatter.dateStyle = .medium
         dateformatter.timeStyle = .short
         dateformatter.dateFormat = "dd MMM yyyy HH:mm"
+        return dateformatter.string(from: self)
+    }
+
+    func shortlocalized_string_from_date() -> String {
+        // MM-dd-yyyy HH:mm
+        let dateformatter = DateFormatter()
+        dateformatter.formatterBehavior = .behavior10_4
+        dateformatter.dateStyle = .medium
+        dateformatter.timeStyle = .short
+        dateformatter.dateFormat = "MM-dd-yyyy:HH:mm"
         return dateformatter.string(from: self)
     }
 
@@ -185,7 +181,6 @@ extension Date {
 }
 
 extension String {
-
     func en_us_date_from_string() -> Date {
         let dateformatter = DateFormatter()
         dateformatter.locale = Locale(identifier: "en_US")

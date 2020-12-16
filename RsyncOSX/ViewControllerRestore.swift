@@ -1,123 +1,96 @@
 //
-//  ViewControllerEdit.swift
-//  RsyncOSXver30
+//  ViewControllerRestore.swift
+//  RsyncOSX
 //
-//  Created by Thomas Evensen on 05/09/2016.
+//  Created by Thomas Evensen on 12/09/2016.
 //  Copyright © 2016 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable line_length
+//  swiftlint:disable line_length type_body_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-class ViewControllerRestore: NSViewController, SetConfigurations, Abort, Connected, Setcolor, VcMain, Checkforrsync {
+protocol Updateremotefilelist: AnyObject {
+    func updateremotefilelist()
+}
 
-    @IBOutlet weak var restoretable: NSTableView!
-    @IBOutlet weak var working: NSProgressIndicator!
-    @IBOutlet weak var gotit: NSTextField!
-
-    @IBOutlet weak var transferredNumber: NSTextField!
-    @IBOutlet weak var transferredNumberSizebytes: NSTextField!
-    @IBOutlet weak var newfiles: NSTextField!
-    @IBOutlet weak var deletefiles: NSTextField!
-    @IBOutlet weak var totalNumber: NSTextField!
-    @IBOutlet weak var totalDirs: NSTextField!
-    @IBOutlet weak var totalNumberSizebytes: NSTextField!
-    @IBOutlet weak var restorebutton: NSButton!
-    @IBOutlet weak var tmprestore: NSTextField!
-    @IBOutlet weak var selecttmptorestore: NSButton!
-    @IBOutlet weak var estimatebutton: NSButton!
-
+class ViewControllerRestore: NSViewController, SetConfigurations, Delay, Connected, VcMain, Checkforrsync, Setcolor, Help {
+    var restorefilestask: RestorefilesTask?
+    var fullrestoretask: FullrestoreTask?
+    var remotefilelist: Remotefilelist?
     var index: Int?
-    var maxcount: Int = 0
-    var outputprocess: OutputProcess?
+    var restoretabledata: [String]?
     var diddissappear: Bool = false
-    weak var sendprocess: SendProcessreference?
+    var outputprocess: OutputProcess?
+    var maxcount: Int = 0
+    weak var outputeverythingDelegate: ViewOutputDetails?
+    var restoreactions: RestoreActions?
+    // Send messages to the sidebar
+    weak var sidebaractionsDelegate: Sidebaractions?
+    var configurations: Estimatedlistforsynchronization?
 
-    @IBAction func totinfo(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerRemoteInfo!)
-        })
-    }
-
-    @IBAction func quickbackup(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        self.openquickbackup()
-    }
-
-    @IBAction func automaticbackup(_ sender: NSButton) {
-        self.presentAsSheet(self.viewControllerEstimating!)
-    }
+    @IBOutlet var restoretableView: NSTableView!
+    @IBOutlet var rsynctableView: NSTableView!
+    @IBOutlet var remotefiles: NSTextField!
+    @IBOutlet var working: NSProgressIndicator!
+    @IBOutlet var search: NSSearchField!
+    @IBOutlet var checkedforfullrestore: NSButton!
+    @IBOutlet var tmprestorepath: NSTextField!
+    @IBOutlet var profilepopupbutton: NSPopUpButton!
+    @IBOutlet var infolabel: NSTextField!
 
     // Selecting profiles
-    @IBAction func profiles(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerProfile!)
-        })
-    }
-
-    // Userconfiguration button
-    @IBAction func userconfiguration(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerUserconfiguration!)
-        })
+    @IBAction func profiles(_: NSButton) {
+        self.presentAsModalWindow(self.viewControllerProfile!)
     }
 
     // Abort button
-       @IBAction func abort(_ sender: NSButton) {
-           self.working.stopAnimation(nil)
-           self.estimatebutton.isEnabled = true
-           self.restorebutton.isEnabled = false
-           self.abort()
-       }
+    @IBAction func abort(_: NSButton) {
+        self.working.stopAnimation(nil)
+        _ = InterruptProcess()
+        self.reset()
+    }
 
-    @IBAction func restore(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        let question: String = NSLocalizedString("Do you REALLY want to start a RESTORE ?", comment: "Restore")
-        let text: String = NSLocalizedString("Cancel or Restore", comment: "Restore")
-        let dialog: String = NSLocalizedString("Restore", comment: "Restore")
-        let answer = Alerts.dialogOrCancel(question: question, text: text, dialog: dialog)
-        if answer {
-            if let index = self.index {
-                self.gotit.textColor = setcolor(nsviewcontroller: self, color: .white)
-                let gotit: String = NSLocalizedString("Executing restore...", comment: "Restore")
-                self.gotit.stringValue = gotit
-                self.gotit.isHidden = false
-                self.restorebutton.isEnabled = false
-                self.outputprocess = OutputProcess()
-                globalMainQueue.async(execute: { () -> Void in
-                    self.presentAsSheet(self.viewControllerProgress!)
-                })
-                switch self.selecttmptorestore.state {
-                case .on:
-                    _ = RestoreTask(index: index, outputprocess: self.outputprocess, dryrun: false,
-                                    tmprestore: true, updateprogress: self)
-                case .off:
-                    _ = RestoreTask(index: index, outputprocess: self.outputprocess, dryrun: false,
-                                    tmprestore: false, updateprogress: self)
-                default:
-                    return
-                }
-            }
-        }
+    @IBAction func showHelp(_: AnyObject?) {
+        self.help()
+    }
+
+    @IBAction func doareset(_: NSButton) {
+        self.reset()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.restoretable.delegate = self
-        self.restoretable.dataSource = self
+        self.configurations = Estimatedlistforsynchronization()
         ViewControllerReference.shared.setvcref(viewcontroller: .vcrestore, nsviewcontroller: self)
-        self.sendprocess = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        self.outputeverythingDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
+        self.restoretableView.delegate = self
+        self.restoretableView.dataSource = self
+        self.rsynctableView.delegate = self
+        self.rsynctableView.dataSource = self
+        self.working.usesThreadedAnimation = true
+        self.search.delegate = self
+        self.tmprestorepath.delegate = self
+        self.remotefiles.delegate = self
+        self.restoretableView.doubleAction = #selector(self.tableViewDoubleClick(sender:))
+        self.initpopupbutton()
     }
 
     override func viewDidAppear() {
         super.viewDidAppear()
-        self.gotit.isHidden = true
-        guard self.diddissappear == false else { return }
-        self.restorebutton.isEnabled = false
-        self.estimatebutton.isEnabled = false
-        self.settmp()
+        self.sidebaractionsDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsidebar) as? ViewControllerSideBar
+        self.sidebaractionsDelegate?.sidebaractions(action: .restoreviewbuttons)
+        guard self.diddissappear == false else {
+            globalMainQueue.async { () -> Void in
+                self.rsynctableView.reloadData()
+            }
+            return
+        }
+        globalMainQueue.async { () -> Void in
+            self.rsynctableView.reloadData()
+        }
+        self.reset()
+        self.settmprestorepathfromuserconfig()
     }
 
     override func viewDidDisappear() {
@@ -125,157 +98,272 @@ class ViewControllerRestore: NSViewController, SetConfigurations, Abort, Connect
         self.diddissappear = true
     }
 
-    private func settmp() {
-        let setuserconfig: String = NSLocalizedString(" ... set in User configuration ...", comment: "Restore")
-        self.tmprestore.stringValue = ViewControllerReference.shared.restorePath ?? setuserconfig
-        if (ViewControllerReference.shared.restorePath ?? "").isEmpty == true {
-            self.selecttmptorestore.state = .off
-        } else {
-             self.selecttmptorestore.state = .on
+    func reset() {
+        self.restoretabledata = nil
+        self.restorefilestask = nil
+        self.fullrestoretask = nil
+        // Restore state
+        self.restoreactions = RestoreActions(closure: self.verifytmprestorepath)
+        if self.index != nil {
+            self.restoreactions?.index = true
+        }
+        self.restoretabledata = nil
+        globalMainQueue.async { () -> Void in
+            self.restoretableView.reloadData()
         }
     }
 
-    private func setNumbers(outputprocess: OutputProcess?) {
-        globalMainQueue.async(execute: { () -> Void in
-            let infotask = RemoteinfonumbersOnetask(outputprocess: outputprocess)
-            self.transferredNumber.stringValue = infotask.transferredNumber!
-            self.transferredNumberSizebytes.stringValue = infotask.transferredNumberSizebytes!
-            self.totalNumber.stringValue = infotask.totalNumber!
-            self.totalNumberSizebytes.stringValue = infotask.totalNumberSizebytes!
-            self.totalDirs.stringValue = infotask.totalDirs!
-            self.newfiles.stringValue = infotask.newfiles!
-            self.deletefiles.stringValue = infotask.deletefiles!
-            self.working.stopAnimation(nil)
-            self.restorebutton.isEnabled = true
-            self.gotit.textColor = self.setcolor(nsviewcontroller: self, color: .green)
-            let gotit: String = NSLocalizedString("Got it...", comment: "Restore")
-            self.gotit.stringValue = gotit
-            self.gotit.isHidden = false
-        })
+    // Restore files
+    func executerestorefiles() {
+        guard self.restoreactions?.goforrestorefilestotemporarypath() ?? false else { return }
+        guard self.restorefilestask != nil else { return }
+        self.restorefilestask?.executecopyfiles(remotefile: self.remotefiles.stringValue, localCatalog: self.tmprestorepath.stringValue, dryrun: false)
+        self.outputprocess = self.restorefilestask?.outputprocess
+        globalMainQueue.async { () -> Void in
+            self.presentAsSheet(self.viewControllerProgress!)
+        }
     }
 
-    @IBAction func prepareforrestore(_ sender: NSButton) {
+    func prepareforfilesrestoreandandgetremotefilelist() {
+        guard self.checkforgetremotefiles() else { return }
         if let index = self.index {
-            if self.connected(config: self.configurations!.getConfigurations()[index]) == true {
-                self.gotit.textColor = setcolor(nsviewcontroller: self, color: .white)
-                let gotit: String = NSLocalizedString("Getting info, please wait...", comment: "Restore")
-                self.gotit.stringValue = gotit
-                self.gotit.isHidden = false
-                self.estimatebutton.isEnabled = false
+            self.infolabel.isHidden = true
+            self.remotefiles.stringValue = ""
+            let hiddenID = Estimatedlistforsynchronization().getConfigurationsDataSourceSynchronize()?[index].value(forKey: DictionaryStrings.hiddenID.rawValue) as? Int ?? -1
+            if Estimatedlistforsynchronization().getConfigurationsDataSourceSynchronize()?[index].value(forKey: DictionaryStrings.taskCellID.rawValue) as? String ?? "" != ViewControllerReference.shared.snapshot {
+                self.restorefilestask = RestorefilesTask(hiddenID: hiddenID, processtermination: self.processtermination, filehandler: self.filehandler)
+                self.remotefilelist = Remotefilelist(hiddenID: hiddenID)
                 self.working.startAnimation(nil)
-                self.outputprocess = OutputProcess()
-                self.sendprocess?.sendoutputprocessreference(outputprocess: self.outputprocess)
-                if ViewControllerReference.shared.restorePath != nil && self.selecttmptorestore.state == .on {
-                    _ = RestoreTask(index: index, outputprocess: self.outputprocess, dryrun: true,
-                                    tmprestore: true, updateprogress: self)
-                } else {
-                    self.selecttmptorestore.state = .off
-                    _ = RestoreTask(index: index, outputprocess: self.outputprocess, dryrun: true,
-                                    tmprestore: false, updateprogress: self)
-                }
             } else {
-                self.gotit.stringValue = NSLocalizedString("Seems not to be connected...", comment: "Remote Info")
-                self.gotit.textColor = self.setcolor(nsviewcontroller: self, color: .red)
-                self.gotit.isHidden = false
+                let question: String = NSLocalizedString("Filelist for snapshot tasks might be huge?", comment: "Restore")
+                let text: String = NSLocalizedString("Start getting files?", comment: "Restore")
+                let dialog: String = NSLocalizedString("Start", comment: "Restore")
+                let answer = Alerts.dialogOrCancel(question: question, text: text, dialog: dialog)
+                if answer {
+                    self.restorefilestask = RestorefilesTask(hiddenID: hiddenID, processtermination: self.processtermination, filehandler: self.filehandler)
+                    self.remotefilelist = Remotefilelist(hiddenID: hiddenID)
+                    self.working.startAnimation(nil)
+                } else {
+                    self.reset()
+                }
             }
         }
     }
 
-    @IBAction func toggletmprestore(_ sender: NSButton) {
-        self.estimatebutton.isEnabled = true
-        self.restorebutton.isEnabled = false
+    func checkforgetremotefiles() -> Bool {
+        guard self.checkforrsync() == false else { return false }
+        if let index = self.index {
+            guard self.connected(config: self.configurations?.getConfigurations()?[index]) == true else {
+                self.infolabel.stringValue = Inforestore().info(num: 4)
+                self.infolabel.isHidden = false
+                return false
+            }
+            guard self.configurations!.getConfigurations()?[index].task != ViewControllerReference.shared.syncremote else {
+                self.infolabel.stringValue = Inforestore().info(num: 5)
+                self.infolabel.isHidden = false
+                self.restoretabledata = nil
+                globalMainQueue.async { () -> Void in
+                    self.restoretableView.reloadData()
+                }
+                return false
+            }
+            return true
+        } else {
+            return false
+        }
     }
 
-    // setting which table row is selected
     func tableViewSelectionDidChange(_ notification: Notification) {
         let myTableViewFromNotification = (notification.object as? NSTableView)!
-        let indexes = myTableViewFromNotification.selectedRowIndexes
-        if let index = indexes.first {
-            self.estimatebutton.isEnabled = true
-            self.index = index
-        } else {
-            self.estimatebutton.isEnabled = false
-            self.index = nil
-        }
-        self.restorebutton.isEnabled = false
-    }
-}
-
-extension ViewControllerRestore: NSTableViewDataSource {
-
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        return self.configurations?.getConfigurationsDataSourceSynchronize()?.count ?? 0
-    }
-}
-
-extension ViewControllerRestore: NSTableViewDelegate {
-
-   func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        guard row < self.configurations!.getConfigurationsDataSourceSynchronize()!.count  else { return nil }
-        let object: NSDictionary = self.configurations!.getConfigurationsDataSourceSynchronize()![row]
-        switch tableColumn!.identifier.rawValue {
-        case "offsiteServerCellID":
-            if (object[tableColumn!.identifier] as? String)!.isEmpty {
-                return "localhost"
-            } else {
-                return object[tableColumn!.identifier] as? String
+        if myTableViewFromNotification == self.restoretableView {
+            self.infolabel.isHidden = true
+            let indexes = myTableViewFromNotification.selectedRowIndexes
+            if let index = indexes.first {
+                guard self.restoretabledata != nil else { return }
+                self.remotefiles.stringValue = self.restoretabledata![index]
+                guard self.remotefiles.stringValue.isEmpty == false else {
+                    self.infolabel.stringValue = Inforestore().info(num: 3)
+                    self.reset()
+                    return
+                }
+                self.restoreactions?.index = true
+                self.restoreactions?.remotefileverified = true
             }
-        default:
-            return object[tableColumn!.identifier] as? String
+        } else {
+            let indexes = myTableViewFromNotification.selectedRowIndexes
+            self.checkedforfullrestore.state = .off
+            if let index = indexes.first {
+                self.index = index
+                self.restoretabledata = nil
+                self.restoreactions?.index = true
+                guard self.restoreactions?.reset() == false else {
+                    self.reset()
+                    return
+                }
+            } else {
+                self.index = nil
+                self.reset()
+            }
+            globalMainQueue.async { () -> Void in
+                self.restoretableView.reloadData()
+            }
         }
     }
-}
 
-extension ViewControllerRestore: UpdateProgress {
-    func processTermination() {
-        self.setNumbers(outputprocess: self.outputprocess)
-        self.maxcount = self.outputprocess?.getMaxcount() ?? 0
-        if let vc = ViewControllerReference.shared.getvcref(viewcontroller: .vcprogressview) as? ViewControllerProgressProcess {
-            vc.processTermination()
+    // Sidebar filelist
+    func getremotefilelist() {
+        guard self.restoreactions?.getfilelistrestorefiles() ?? false else { return }
+        self.prepareforfilesrestoreandandgetremotefilelist()
+    }
+
+    // Sidebar reset
+    func resetaction() {
+        self.reset()
+    }
+
+    @objc(tableViewDoubleClick:) func tableViewDoubleClick(sender _: AnyObject) {
+        guard self.remotefiles.stringValue.isEmpty == false else { return }
+        guard self.verifytmprestorepath() == true else { return }
+        let question: String = NSLocalizedString("Copy single files or directory?", comment: "Restore")
+        let text: String = NSLocalizedString("Start restore?", comment: "Restore")
+        let dialog: String = NSLocalizedString("Restore", comment: "Restore")
+        let answer = Alerts.dialogOrCancel(question: question, text: text, dialog: dialog)
+        if answer {
+            self.working.startAnimation(nil)
+            self.restorefilestask?.executecopyfiles(remotefile: remotefiles?.stringValue ?? "", localCatalog: tmprestorepath?.stringValue ?? "", dryrun: false)
         }
     }
 
-    func fileHandler() {
-        weak var outputeverythingDelegate: ViewOutputDetails?
-        outputeverythingDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
-        if outputeverythingDelegate?.appendnow() ?? false {
-            outputeverythingDelegate?.reloadtable()
+    private func checkforfullrestore() -> Bool {
+        if let index = self.index {
+            guard self.connected(config: self.configurations!.getConfigurations()?[index]) == true else {
+                self.infolabel.stringValue = Inforestore().info(num: 4)
+                self.infolabel.isHidden = false
+                return false
+            }
+            guard self.configurations?.getConfigurations()?[index].task != ViewControllerReference.shared.syncremote else {
+                self.infolabel.stringValue = Inforestore().info(num: 5)
+                self.infolabel.isHidden = false
+                return false
+            }
         }
-        if let vc = ViewControllerReference.shared.getvcref(viewcontroller: .vcprogressview) as? ViewControllerProgressProcess {
-            vc.fileHandler()
+        return true
+    }
+
+    func executefullrestore() {
+        let question: String = NSLocalizedString("Do you REALLY want to start a restore?", comment: "Restore")
+        let text: String = NSLocalizedString("Cancel or Restore", comment: "Restore")
+        let dialog: String = NSLocalizedString("Restore", comment: "Restore")
+        let answer = Alerts.dialogOrCancel(question: question, text: text, dialog: dialog)
+        if answer {
+            if let index = self.index {
+                let gotit: String = NSLocalizedString("Executing restore...", comment: "Restore")
+                self.infolabel.stringValue = gotit
+                self.infolabel.isHidden = false
+                globalMainQueue.async { () -> Void in
+                    self.presentAsSheet(self.viewControllerProgress!)
+                }
+                self.fullrestoretask = FullrestoreTask(dryrun: false, processtermination: self.processtermination, filehandler: self.filehandler)
+                self.fullrestoretask?.executerestore(index: index)
+                self.outputprocess = self.fullrestoretask?.outputprocess
+            }
         }
     }
-}
 
-extension ViewControllerRestore: OpenQuickBackup {
-    func openquickbackup() {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerQuickBackup!)
-        })
-    }
-}
-
-extension ViewControllerRestore: DismissViewController {
-    func dismiss_view(viewcontroller: NSViewController) {
-        self.dismiss(viewcontroller)
-        globalMainQueue.async(execute: { () -> Void in
-            self.restoretable.reloadData()
-        })
-    }
-}
-
-extension ViewControllerRestore: Count {
-    func maxCount() -> Int {
-        return self.maxcount
+    func settmprestorepathfromuserconfig() {
+        let setuserconfig: String = NSLocalizedString(" ... set in User configuration ...", comment: "Restore")
+        self.tmprestorepath.stringValue = ViewControllerReference.shared.temporarypathforrestore ?? setuserconfig
+        if (ViewControllerReference.shared.temporarypathforrestore ?? "").isEmpty == true {
+            self.restoreactions?.tmprestorepathselected = false
+        } else {
+            self.restoreactions?.tmprestorepathselected = true
+        }
+        self.restoreactions?.tmprestorepathverified = self.verifytmprestorepath()
     }
 
-    func inprogressCount() -> Int {
-        return self.outputprocess?.count() ?? 0
+    func verifytmprestorepath() -> Bool {
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: self.tmprestorepath.stringValue) == false {
+            self.infolabel.stringValue = Inforestore().info(num: 1)
+            return false
+        } else {
+            self.infolabel.isHidden = true
+            return true
+        }
     }
-}
 
-extension ViewControllerRestore: TemporaryRestorePath {
-    func temporaryrestorepath() {
-        self.settmp()
+    func goforrestorebyfile() {
+        self.restoreactions?.restorefiles = true
+        self.restoreactions?.fullrestore = false
+        globalMainQueue.async { () -> Void in
+            self.restoretableView.reloadData()
+        }
+    }
+
+    func goforfullrestore() {
+        self.restoretabledata = nil
+        self.restoreactions?.fullrestore = true
+        self.restoreactions?.restorefiles = false
+        self.restoreactions?.tmprestorepathselected = true
+        globalMainQueue.async { () -> Void in
+            self.restoretableView.reloadData()
+        }
+    }
+
+    // Sidebar restore
+    func restore() {
+        if self.checkedforfullrestore.state == .on {
+            if self.restoreactions?.goforfullrestoretotemporarypath() == true {
+                self.executefullrestore()
+            }
+        } else {
+            if self.restoreactions?.goforrestorefilestotemporarypath() == true {
+                self.executerestorefiles()
+            }
+        }
+    }
+
+    // Sidebar estimate
+    func estimate() {
+        guard self.checkforrsync() == false else { return }
+        if self.restoreactions?.goforfullrestoreestimatetemporarypath() ?? false {
+            guard self.checkforfullrestore() == true else { return }
+            if let index = self.index {
+                let gotit: String = NSLocalizedString("Getting info, please wait...", comment: "Restore")
+                self.infolabel.stringValue = gotit
+                self.infolabel.isHidden = false
+                self.working.startAnimation(nil)
+                if self.restoreactions?.goforfullrestoreestimatetemporarypath() ?? false {
+                    self.fullrestoretask = FullrestoreTask(dryrun: true, processtermination: self.processtermination, filehandler: self.filehandler)
+                    self.fullrestoretask?.executerestore(index: index)
+                    self.outputprocess = self.fullrestoretask?.outputprocess
+                }
+            }
+        } else {
+            guard self.restoreactions?.remotefileverified ?? false else { return }
+            self.working.startAnimation(nil)
+            self.restorefilestask?.executecopyfiles(remotefile: self.remotefiles!.stringValue, localCatalog: self.tmprestorepath!.stringValue, dryrun: true)
+            self.outputprocess = self.restorefilestask?.outputprocess
+        }
+    }
+
+    func initpopupbutton() {
+        var profilestrings: [String]?
+        profilestrings = CatalogProfile().getcatalogsasstringnames()
+        profilestrings?.insert(NSLocalizedString("Default profile", comment: "default profile"), at: 0)
+        self.profilepopupbutton.removeAllItems()
+        self.profilepopupbutton.addItems(withTitles: profilestrings ?? [])
+        self.profilepopupbutton.selectItem(at: 0)
+    }
+
+    @IBAction func selectprofile(_: NSButton) {
+        var profile = self.profilepopupbutton.titleOfSelectedItem
+        let selectedindex = self.profilepopupbutton.indexOfSelectedItem
+        if profile == NSLocalizedString("Default profile", comment: "default profile") {
+            profile = nil
+        }
+        self.profilepopupbutton.selectItem(at: selectedindex)
+        _ = Selectprofile(profile: profile, selectedindex: selectedindex)
+        self.reset()
     }
 }

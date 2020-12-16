@@ -5,6 +5,7 @@
 //  Created by Thomas Evensen on 11/10/2019.
 //  Copyright © 2019 Thomas Evensen. All rights reserved.
 //
+// swiftlint:disable trailing_comma
 
 import Foundation
 struct SuffixstringsRsyncParameters {
@@ -23,9 +24,12 @@ struct SuffixstringsRsyncParameters {
         ("--backup", 0),
         ("--backup-dir", 1),
         ("--exclude-from", 1),
+        ("--exclude", 1),
         ("--include-from", 1),
         ("--files-from", 1),
         ("--max-size", 1),
         ("--suffix", 1),
-        ("--max-delete", 1)]
+        ("--max-delete", 1),
+        ("--delete-excluded", 0),
+    ]
 }

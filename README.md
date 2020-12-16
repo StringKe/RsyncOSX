@@ -1,54 +1,110 @@
-## RsyncOSX
+[![GitHub license](https://img.shields.io/github/license/rsyncOSX/RsyncOSX)](https://github.com/rsyncOSX/RsyncOSX/blob/master/Licence.MD) ![GitHub Releases](https://img.shields.io/github/downloads/rsyncosx/RsyncOSX/v6.5.2/total) ![GitHub Releases](https://img.shields.io/github/downloads/rsyncosx/RsyncOSX/v6.5.0/total) [![Crowdin](https://badges.crowdin.net/rsyncosx/localized.svg)](https://crowdin.com/project/rsyncosx) [![Netlify Status](https://api.netlify.com/api/v1/badges/d375f6d7-dc9f-4913-ab43-bfd46d172eb2/deploy-status)](https://app.netlify.com/sites/rsyncosx/deploys) [![GitHub issues](https://img.shields.io/github/issues/rsyncOSX/RsyncOSX)](https://github.com/rsyncOSX/RsyncOSX/issues)
 
-![](icon/rsyncosx.png)
+RsyncOSX require macOS Catalina 10.15 and later versions of macOS.
 
-Please [read the Changelog](https://rsyncosx.github.io/Changelog). If you want to discuss changes or report bugs please create an [Issue](https://github.com/rsyncOSX/RsyncOSX/issues).
+![](images/main1.png)
+![](images/main2.png)
+- [Documents, issues and changelog](#documents-issues-and-changelog)
+- [Dependencies](#dependencies)
+- [Tools used](#tools-used)
+- [Scheduling](#scheduling)
+- [Remote servers](#remote-servers)
+- [Signing and notarizing](#signing-and-notarizing)
+- [Localization](#localization)
+- [Version of rsync](#version-of-rsync)
+- [Some words about RsyncOSX](#some-words-about-rsyncosx)
+- [The --delete parameter](#the---delete-parameter)
+- [The source code and compile](#the-source-code-and-compile)
+- [A Sandboxed version](#a-sandboxed-version)
+- [About bugs](#about-bugs)
+- [About restoring files to a temporary restore catalog](#about-restoring-files-to-a-temporary-restore-catalog)
+- [Application icon](#application-icon)
+- [How to use RsyncOSX - YouTube videos](#how-to-use-rsyncosx---youtube-videos)
+- [XCTest](#xctest)
 
-**Read about the --delete parameter** (below) to rsync **before** using rsync and RsyncOSX.
+### Install by Homebrew
 
-RsyncOSX is a GUI on top of the command line utility `rsync`. Rsync is a file-based synchronization and backup tool. There is no custom solution for the backup archive. You can quit utilizing RsyncOSX (and rsync) at any time and still have access to all synchronized files.
+RsyncOSX can also be installed by Homebrew: `brew cask install rsyncosx`
 
-RsyncOSX is compiled with support for **macOS El Capitan version 10.11 - macOS Catalina version 10.15**. The application is implemented in Swift 5 by using Xcode 11. RsyncOSX is not depended upon any third party binary distributions. There is, however, [one third party source code](https://github.com/swiftsocket/SwiftSocket) included to check for TCP connections.
+### Documents, issues and changelog
 
-Scheduled tasks are added and deleted within RsyncOSX. Executing the scheduled tasks is by the [menu app](https://github.com/rsyncOSX/RsyncOSXsched).
+RsyncOSX is a GUI on top of the command line utility `rsync`. Rsync is a file-based synchronization and backup tool. There is no custom solution for the backup archive. You can quit utilizing RsyncOSX (and rsync) at any time and still have access to all synchronized files. From version 6.4.6, RsyncOSX is compiled with support for **macOS Catalina 10.15 and later versions**.
 
-RsyncOSX is dependent on [setting up password less logins for remote servers](https://rsyncosx.github.io/Remotelogins). Both ssh-keys and rsync daemon setup are enabled. It is advised utilizing ssh-keys.
+- [info and guidelines about using RsyncOSX](https://rsyncosx.netlify.app/)
+- [the changelog](https://rsyncosx.netlify.app/post/changelog/)
+
+The above docs are based on [Hugo](https://gohugo.io/), the Hugo theme [Even](https://github.com/olOwOlo/hugo-theme-even), Markdown and published on [Netlify](https://rsyncosx.netlify.app/). If you want to discuss changes or report bugs please [create an issue](https://github.com/rsyncOSX/RsyncOSX/issues).
+
+### Dependencies
+
+The application is implemented in pure Swift 5, Cocoa and Foundation. From the latest release there are three source code dependencies:
+
+- check for TCP connectivity by utilizing [SwiftSocket](https://github.com/swiftsocket/SwiftSocket), some functions require connections to remote servers
+- execute pre and post shellscripts by utilizing John Sundell´s [ShellOut](https://github.com/JohnSundell/ShellOut)
+- utilizing John Sundell´s [Files](https://github.com/JohnSundell/Files) for reading files and catalogs
+
+All three are available as source code and automatically included as part of building RsyncOSX.
+
+Working with JSON require to encode and decode the JSON file. The tool [JSONExport](https://github.com/Ahmed-Ali/JSONExport) is used to create the required Swift structs ([configurations](https://github.com/rsyncOSX/RsyncOSX/blob/master/RsyncOSX/DecodeConfiguration.swift), [schedules and logs](https://github.com/rsyncOSX/RsyncOSX/blob/master/RsyncOSX/DecodeSchedule.swift)) for decode JSON file into the approriate Swift structs.
+
+### Tools used
+
+The following tools are used in development:
+
+- Xcode (the main tool)
+- make to compile new versions in terminal
+- [create-dmg](https://github.com/sindresorhus/create-dmg) to create new releases
+- [periphery](https://github.com/peripheryapp/periphery) to identify unused code
+- [SwiftLint](https://github.com/realm/SwiftLint) to enforce Swift style and conventions
+- [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) for reformatting Swift code
+
+All the above, except Xcode are installed by using [Homebrew](https://brew.sh/).
+
+### Scheduling
+
+Scheduled tasks are added and deleted within RsyncOSX. Executing the scheduled tasks is by the [menu app](https://rsyncosx.netlify.app/post/menuapp/).
+
+### Remote servers
+
+If destination is a **remote server**, RsyncOSX is dependent on [setting up password-less logins](https://rsyncosx.netlify.app/post/remotelogins/). Both ssh-keys and rsync daemon setup are possible. It is advised utilizing ssh-keys because communication between source and destination (client and server) is encrypted.
+
+If destination is a **local attached volume**, the above is not relevant.
 
 ### Signing and notarizing
 
-The app is signed with my Apple ID developer certificate and [notarized](https://support.apple.com/en-us/HT202491) by Apple. See [signing and notarizing](https://rsyncosx.github.io/Notarized) for info. Signing and notarizing is required to run on macOS Catalina.
+The app is signed with my Apple ID developer certificate and [notarized](https://support.apple.com/en-us/HT202491) by Apple. See [signing and notarizing](https://rsyncosx.netlify.app/post/notarized/) for info. Signing and notarizing is required to run on macOS Catalina.
 
 ### Localization
 
-[RsyncOSX speaks new languages](https://rsyncosx.github.io/Localization). RsyncOSX is localized to:
-- Chinese (Simplified) -  by [StringKe](https://github.com/StringKe)
+[RsyncOSX speaks new languages](https://rsyncosx.netlify.app/post/localization/). RsyncOSX is localized to:
+- Chinese (Simplified) -  by [StringKe (Chen)](https://github.com/StringKe)
+- German - by [Andre Voigtmann](https://github.com/andre68723)
 - Norwegian - by me
 - English - the base language of RsyncOSX
+- Italian - by [Stefano Steve Cutelle'](https://github.com/stefanocutelle)
+- Dutch - by [Marcellino Santoso](https://github.com/maebs)
 
-RsyncOSX is prepared for new languages.
-
-### Please read this
-
-Is RsyncOSX easy to use or a backup tool for the average user? If you have some understanding of how to use rsync, it is helpful for understand the use of RsyncOSX. If you don't know what rsync is I recommend to read about rsync before commencing use of RsyncOSX.
-
-RsyncOSX is not developed to be an easy synchronize and backup tool. The main purpose is to ease the use of rsync and synchronize files on your Mac to remote FreeBSD and Linux servers. And of course restore files from remote servers. The UX might be difficult to understand if you don't know rsync.
-
-RsyncOSX supports synchronize files and snapshots of files. It is important you understand either what synchronize is and snapshot before using RsyncOSX.
-
-If your plan is to use RsyncOSX as your main tool for backup of files, please investigate and understand the limits of RsyncOSX and rsync. RsyncOSX is quite powerful, but it is might not the primary backup tool for the average user of macOS.
-
-There is a [short intro to RsyncOSX](https://rsyncosx.github.io/Intro) and [some more documentation of RsyncOSX](https://rsyncosx.github.io/AboutRsyncOSX).
-
+Localization is done by utilizing [Crowdin](https://crowdin.com/project/rsyncosx) to translate the xliff files which are imported into Xcode after translating. Xcode then creates the required language strings. [Crowdin is free for open source projects](https://crowdin.com/page/open-source-project-setup-request).
 
 ### Version of rsync
 
-RsyncOSX is only verified with rsync versions 2.6.9, 3.1.2 and 3.1.3. Other versions of rsync will work but numbers about transferred files is not set in logs. It is recommended to [install](https://rsyncosx.github.io/Install) the latest version of rsync.
+RsyncOSX is verified with rsync versions 2.6.9, 3.1.2, 3.1.3 and 3.2.x. Other versions of rsync will work but numbers about transferred files is not set in logs. It is recommended to [install](https://rsyncosx.netlify.app/post/rsync/) the latest version of rsync.
 
 If you are only looking for utilizing stock version of rsync (version 2.6.9) and only synchronize data to either local attached disks or remote servers, [there is a minor version (RsynGUI) available on Mac App Store](https://itunes.apple.com/us/app/rsyncgui/id1449707783?l=nb&ls=1&mt=12). RsyncGUI does **not** support snapshots or scheduling task.
 
-### The --delete parameter
+### Some words about RsyncOSX
 
-For your own safety please read and understand the following:
+RsyncOSX is not developed to be an easy to use synchronize and backup tool. The main purpose is to assist and ease the use of `rsync` to synchronize files on your Mac to remote FreeBSD and Linux servers. And of course restore files from remote servers.
+
+The UI can for users who dont know `rsync`, be difficult or complex to understand. It is not required to know `rsync` but it will ease the use and understanding of RsyncOSX. But it is though, possible to use RsyncOSX by just adding a source and remote backup catalog using default parameters.
+
+RsyncOSX supports synchronize and snapshots of files.
+
+If your plan is to use RsyncOSX as your main tool for backup of files, please investigate and understand the limits of it. RsyncOSX is quite powerful, but it is might not the primary backup tool for the average user of macOS.
+
+There is a [short intro to RsyncOSX](https://rsyncosx.netlify.app/post/intro/) and [some more documentation of RsyncOSX](https://rsyncosx.netlify.app/post/rsyncosxdocs/).
+
+### The --delete parameter
 ```
 Caution about RsyncOSX and the `--delete` parameter. The `--delete` is a default parameter.
 The parameter instructs rsync to keep the source and destination synchronized (in sync).
@@ -58,60 +114,39 @@ in the source.
 Every time you add a new task to RsyncOSX, execute an estimation run (--dry-run) and inspect
 the result before executing a real run. If you by accident set an empty catalog as source
 RsyncOSX (rsync) will delete all files in the destination.
-
-To save deleted and changes files either utilize snapshots (https://rsyncosx.github.io/Snapshots)
-or the `--backup` feature (https://rsyncosx.github.io/Parameters).
-
-The --delete parameter and other default parameters might be deleted if wanted.
 ```
+To save deleted and changes files either utilize [snapshots](https://rsyncosx.netlify.app/post/snapshots/)
+or [the --backup parameter](https://rsyncosx.netlify.app/post/userparameters/). The --delete parameter and other default parameters might be deleted if wanted.
 
-### Main view
+### The source code and compile
 
-The main view of RsyncOSX.
-![](images/main1.png)
-Prepare for synchronizing tasks.
-![](images/main2.png)
+There are [some details about source and how to compile](https://rsyncosx.netlify.app/post/compile/).
 
 ### A Sandboxed version
 
-[There is also released a minor version, RsyncGUI](https://itunes.apple.com/us/app/rsyncgui/id1449707783?l=nb&ls=1&mt=12) of RsyncOSX on Apple Mac App Store. See the [changelog](https://rsyncosx.github.io/RsyncGUIChangelog). RsyncGUI utilizes stock version of rsync in macOS and RsyncGUI only supports synchronize task (no snapshots).
+[There is also released a minor version, RsyncGUI](https://itunes.apple.com/us/app/rsyncgui/id1449707783?l=nb&ls=1&mt=12) of RsyncOSX on Apple Mac App Store. See the [changelog](https://rsyncosx.netlify.app/post/rsyncguichangelog/). RsyncGUI utilizes stock version of rsync in macOS and RsyncGUI only supports synchronize task (no snapshots).
 
-### About bugs and crash?
+### About bugs
 
-What happens [if bugs occurs during execution of tasks in RsyncOSX?](https://rsyncosx.github.io/Bugs). Fighting bugs are difficult. I am not able to test RsyncOSX for all possible user interactions and use. From time to time I discover new bugs. But I also need support from other users discovering bugs or not expected results. If you discover a bug please use the [issues](https://github.com/rsyncOSX/RsyncOSX/issues) and report it.
+ Over the years most bugs are smoked out. Thanks to users who reports bugs. Fighting bugs are difficult. I am not able to test RsyncOSX for all possible user interactions and use. I need support from other users discovering bugs or not expected results. If you discover a bug [please report it](https://github.com/rsyncOSX/RsyncOSX/issues).
 
 ### About restoring files to a temporary restore catalog
 
-If you do a **restore** from the `remote` to the `source`, some files in the source might be deleted. This is due to how rsync works in `synchronize` mode. As a precaution **never** do a restore directly from the `remote` to the `source`, always do a restore to a temporary restore catalog.
+If you do a restore from the `remote` to the `source`, some files in the source might be deleted. This is due to how rsync works in `synchronize` mode. As a precaution **never** do a restore directly from the `remote` to the `source`, always do a restore to a temporary restore catalog.
 
 ### Application icon
 
 The application icon is created by [Zsolt Sándor](https://github.com/graphis). All rights reserved to Zsolt Sándor.
 
+![](icon/rsyncosx.png)
+
 ### How to use RsyncOSX - YouTube videos
 
-There are four short YouTube videos of RsyncOSX:
+There are two short YouTube videos of RsyncOSX:
 
-- [getting](https://youtu.be/MrT8NzdF9dE) RsyncOSX and installing it
-  - the video also shows how to create the two local ssh certificates for password less logins to remote server
-- adding and executing the [first backup](https://youtu.be/8oe1lKgiDx8)
-- doing a full [restore](https://youtu.be/-R6n_8fl6Ls) to a temporary local restore catalogs
-- how to change [version of rsync](https://youtu.be/mVFL25-lo6Y) utilized by RsyncOSX
-
-#### SwiftLint
-
-As part of this version of RsyncOSX I am using [SwiftLint](https://github.com/realm/SwiftLint) as tool for writing more readable code. There are about 120 classes with 15,000 lines of code in RsyncOSX. I am also using Paul Taykalo´s [swift-scripts](https://github.com/PaulTaykalo/swift-scripts) to find and delete not used code.
-
-### Compile
-
-To compile the code, install Xcode and open the RsyncOSX project file. Before compiling, open in Xcode the `RsyncOSX/General` preference page and replace with your own credentials in `Signing`, or disable Signing.
-
-There are two ways to compile, either utilize `make` or compile by Xcode. `make release` will compile the `RsyncOSX.app` and `make dmg` will make a dmg file to be released.  The build of dmg files are by utilizing [andreyvit](https://github.com/andreyvit/create-dmg) script for creating dmg and [syncthing-macos](https://github.com/syncthing/syncthing-macos) setup.
-
-### Xliff and translating
-
-Translating RsyncOSX is done by utilizing the [Xlifftool](https://github.com/remuslazar/osx-xliff-tool). The tool reads a xliff file. The xliff file is imported into RsyncOSX by Xcode.
+- [how to get and install RsyncOSX](https://youtu.be/d-srHjL2F-0)
+- [adding and executing the first backup](https://youtu.be/vS5_rXdTtZ8)
 
 ### XCTest
 
-XCTest configurations are in [development](https://github.com/rsyncOSX/RsyncOSX/blob/master/XCTestconfiguration/XCTest.md).
+There are two [XCTest configurations](https://github.com/rsyncOSX/RsyncOSX/blob/master/XCTestconfiguration/XCTest.md) for testing.

@@ -8,26 +8,24 @@
 
 import Foundation
 
-final class SnapshotCreateCatalogArguments: ProcessArguments {
-
+final class SnapshotCreateCatalogArguments {
     private var config: Configuration?
     private var args: [String]?
     private var command: String?
 
     private func remotearguments() {
         var remotearg: String?
-        guard self.config != nil else { return }
-        if self.config!.sshport != nil {
-            self.args!.append("-p")
-            self.args!.append(String(self.config!.sshport!))
+        if self.config?.sshport != nil {
+            self.args?.append("-p")
+            self.args?.append(String(self.config!.sshport!))
         }
-        if self.config!.offsiteServer.isEmpty == false {
-            remotearg = self.config!.offsiteUsername + "@" + self.config!.offsiteServer
-            self.args!.append(remotearg!)
+        if (self.config?.offsiteServer.isEmpty ?? true) == false {
+            remotearg = (self.config?.offsiteUsername ?? "") + "@" + (self.config?.offsiteServer ?? "")
+            self.args?.append(remotearg!)
         }
         let remotecatalog = config?.offsiteCatalog
-        let remotecommand = "mkdir -p " + remotecatalog!
-        self.args!.append(remotecommand)
+        let remotecommand = "mkdir -p " + (remotecatalog ?? "")
+        self.args?.append(remotecommand)
     }
 
     func getArguments() -> [String]? {
@@ -38,7 +36,8 @@ final class SnapshotCreateCatalogArguments: ProcessArguments {
         return self.command
     }
 
-    init (config: Configuration) {
+    init(config: Configuration?) {
+        guard config != nil else { return }
         self.args = [String]()
         self.config = config
         self.remotearguments()

@@ -1,71 +1,41 @@
-//
-//  RemoteCapacity.swift
-//  RsyncOSX
-//
-//  Created by Thomas Evensen on 16/12/2018.
-//  Copyright © 2018 Thomas Evensen. All rights reserved.
-//
-
 import Foundation
 
-final class RemoteCapacity: SetConfigurations, Connected {
-
-    var process: Process?
+final class RemoteCapacity: Connected {
     var outputprocess: OutputProcess?
-    var remotecapacity: [NSMutableDictionary]?
-    var index: Int?
-    var object: UpdateProgress?
+    var config: Configuration?
+    var command: OtherProcessCmdClosure?
 
-    func enableremotecapacitybutton() -> Bool {
-        if self.index! < self.configurations!.getConfigurations().count {
-            return false
-        } else {
-            return true
-        }
-    }
-
-    private func getremotesizes(index: Int) {
-        self.outputprocess = OutputProcess()
-        let config = self.configurations!.getConfigurations()[index]
-        if self.connected(config: config) == true && config.offsiteServer.isEmpty == false {
-            let duargs: DuArgumentsSsh = DuArgumentsSsh(config: config)
+    func getremotecapacity() {
+        if let config = self.config {
+            guard ViewControllerReference.shared.process == nil else { return }
+            self.outputprocess = OutputProcess()
+            // let config = Configuration(dictionary: dict)
+            guard self.connected(config: config) == true else { return }
+            let duargs = DuArgumentsSsh(config: self.config!)
             guard duargs.getArguments() != nil || duargs.getCommand() != nil else { return }
-            let task: DuCommandSsh = DuCommandSsh(command: duargs.getCommand(), arguments: duargs.getArguments())
-            task.setdelegate(object: self.object!)
-            task.executeProcess(outputprocess: self.outputprocess)
-            self.process = task.getprocess()
-        } else {
-            self.processTermination()
+
+            self.command = OtherProcessCmdClosure(command: duargs.getCommand(),
+                                                  arguments: duargs.getArguments(),
+                                                  processtermination: self.processtermination,
+                                                  filehandler: self.filehandler)
+            self.command?.executeProcess(outputprocess: self.outputprocess)
         }
     }
 
-    init(object: UpdateProgress) {
-        guard self.configurations?.getConfigurationsDataSource() != nil else { return }
-        self.object = object
-        self.remotecapacity = [NSMutableDictionary]()
-        self.index = 0
-        self.getremotesizes(index: self.index ?? 0)
+    init(config: Configuration) {
+        self.config = config
     }
 }
 
-extension RemoteCapacity: UpdateProgress {
-    func processTermination() {
+extension RemoteCapacity {
+    func processtermination() {
+        guard ViewControllerReference.shared.process != nil else { return }
         let numbers = RemoteNumbers(outputprocess: self.outputprocess)
-        let result = NSMutableDictionary()
-        let offsiteServer = self.configurations!.getConfigurations()[index!].offsiteServer
-        let offsiteCatalog = self.configurations!.getConfigurations()[index!].offsiteCatalog
-        result.setValue(offsiteServer, forKey: "offsiteServer")
-        result.setValue(offsiteCatalog, forKey: "offsiteCatalog")
-        result.setValue(numbers.getused(), forKey: "used")
-        result.setValue(numbers.getavail(), forKey: "avail")
-        result.setValue(numbers.getpercentavaliable(), forKey: "availpercent")
-        self.remotecapacity?.append(result)
-        self.index = self.index! + 1
-        guard self.index! < self.configurations!.getConfigurations().count else { return }
-        self.getremotesizes(index: self.index!)
+        print(numbers)
+        self.command = nil
     }
 
-    func fileHandler() {
+    func filehandler() {
         //
     }
 }

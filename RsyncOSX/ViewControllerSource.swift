@@ -6,42 +6,21 @@
 //  Copyright © 2019 Thomas Evensen. All rights reserved.
 //
 
-import Foundation
 import Cocoa
+import Foundation
 
-class ViewControllerSource: NSViewController, SetConfigurations, SetDismisser {
-
-    @IBOutlet weak var mainTableView: NSTableView!
-    @IBOutlet weak var selectButton: NSButton!
+class ViewControllerSource: NSViewController, SetConfigurations {
+    @IBOutlet var mainTableView: NSTableView!
 
     weak var getSourceDelegateSsh: ViewControllerSsh?
-    weak var getSourceDelegateSnapshots: ViewControllerSnapshots?
     private var index: Int?
 
-    private func dismissview() {
-        if (self.presentingViewController as? ViewControllerMain) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
-        } else if (self.presentingViewController as? ViewControllerSchedule) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vctabschedule)
-        } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcnewconfigurations)
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
-        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        } else if (self.presentingViewController as? ViewControllerSsh) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcssh)
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcverify)
-        } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcloggdata)
-        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
-        }
+    @IBAction func closeview(_: NSButton) {
+        self.view.window?.close()
     }
 
     private func select() {
-        if let pvc = self.presentingViewController as? ViewControllerSsh {
+        if let pvc = ViewControllerReference.shared.getvcref(viewcontroller: .vcssh) as? ViewControllerSsh {
             self.getSourceDelegateSsh = pvc
             if let index = self.index {
                 self.getSourceDelegateSsh?.getSourceindex(index: index)
@@ -49,13 +28,9 @@ class ViewControllerSource: NSViewController, SetConfigurations, SetDismisser {
         }
     }
 
-    @IBAction func close(_ sender: NSButton) {
-        self.dismissview()
-    }
-
-    @IBAction func select(_ sender: NSButton) {
+    @IBAction func select(_: NSButton) {
         self.select()
-        self.dismissview()
+        self.view.window?.close()
     }
 
     // Initial functions viewDidLoad and viewDidAppear
@@ -67,41 +42,43 @@ class ViewControllerSource: NSViewController, SetConfigurations, SetDismisser {
     }
 
     override func viewDidAppear() {
-        self.selectButton.isEnabled = false
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.mainTableView.reloadData()
-        })
+        }
     }
 
-    @objc(tableViewDoubleClick:) func tableViewDoubleClick(sender: AnyObject) {
+    @objc(tableViewDoubleClick:) func tableViewDoubleClick(sender _: AnyObject) {
         self.select()
-        self.dismissview()
+        self.view.window?.close()
     }
 
     // when row is selected, setting which table row is selected
     func tableViewSelectionDidChange(_ notification: Notification) {
         let myTableViewFromNotification = (notification.object as? NSTableView)!
         let indexes = myTableViewFromNotification.selectedRowIndexes
-        self.selectButton.isEnabled = true
         if let index = indexes.first {
-            let object = self.configurations!.getConfigurationsDataSourceSynchronize()![index]
-            let hiddenID = object.value(forKey: "hiddenID") as? Int
-            guard hiddenID != nil else { return }
-            self.index = hiddenID!
+            if let object = ConfigurationsAsDictionarys().uniqueserversandlogins()?[index] {
+                if let hiddenID = object.value(forKey: DictionaryStrings.hiddenID.rawValue) as? Int {
+                    self.index = hiddenID
+                }
+            }
         }
     }
 }
 
 extension ViewControllerSource: NSTableViewDataSource {
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        guard self.configurations != nil else { return 0 }
-        return self.configurations!.getConfigurationsDataSourceSynchronize()?.count ?? 0
+    func numberOfRows(in _: NSTableView) -> Int {
+        return ConfigurationsAsDictionarys().uniqueserversandlogins()?.count ?? 0
     }
 }
 
 extension ViewControllerSource: NSTableViewDelegate {
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        let object: NSDictionary = self.configurations!.getConfigurationsDataSourceSynchronize()![row]
-        return object[tableColumn!.identifier] as? String
+    func tableView(_: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+        if let object: NSDictionary = ConfigurationsAsDictionarys().uniqueserversandlogins()?[row],
+           let tableColumn = tableColumn
+        {
+            return object[tableColumn.identifier] as? String
+        }
+        return nil
     }
 }

@@ -7,150 +7,60 @@
 //
 // swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-class ViewControllerSsh: NSViewController, SetConfigurations, VcMain, Checkforrsync {
+protocol Loadsshparameters: AnyObject {
+    func loadsshparameters()
+}
 
+protocol GetSource: AnyObject {
+    func getSourceindex(index: Int)
+}
+
+class ViewControllerSsh: NSViewController, SetConfigurations, VcMain, Checkforrsync, Help {
     var sshcmd: Ssh?
     var hiddenID: Int?
     var data: [String]?
     var outputprocess: OutputProcess?
-    var execute: Bool = false
+    // Send messages to the sidebar
+    weak var sidebaractionsDelegate: Sidebaractions?
 
-    @IBOutlet weak var dsaCheck: NSButton!
-    @IBOutlet weak var rsaCheck: NSButton!
-    @IBOutlet weak var detailsTable: NSTableView!
-    @IBOutlet weak var checkRsaPubKeyButton: NSButton!
-    @IBOutlet weak var checkDsaPubKeyButton: NSButton!
-    @IBOutlet weak var createRsaKey: NSButton!
-    @IBOutlet weak var createDsaKey: NSButton!
-    @IBOutlet weak var createKeys: NSButton!
-    @IBOutlet weak var scpRsaCopyPasteCommand: NSTextField!
-    @IBOutlet weak var scpDsaCopyPasteCommand: NSTextField!
-    @IBOutlet weak var sshCreateRemoteCatalog: NSTextField!
-    @IBOutlet weak var remoteserverbutton: NSButton!
-    @IBOutlet weak var terminalappbutton: NSButton!
-
-    lazy var viewControllerSource: NSViewController? = {
-        return (self.storyboard!.instantiateController(withIdentifier: "CopyFilesID")
-            as? NSViewController)
-    }()
-
-    @IBAction func totinfo(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerRemoteInfo!)
-        })
-    }
-
-    @IBAction func quickbackup(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        self.openquickbackup()
-    }
-
-    @IBAction func automaticbackup(_ sender: NSButton) {
-        self.presentAsSheet(self.viewControllerEstimating!)
-    }
+    @IBOutlet var rsaCheck: NSButton!
+    @IBOutlet var detailsTable: NSTableView!
+    @IBOutlet var copykeycommand: NSTextField!
+    @IBOutlet var sshport: NSTextField!
+    @IBOutlet var sshkeypathandidentityfile: NSTextField!
+    @IBOutlet var verifykeycommand: NSTextField!
 
     // Selecting profiles
-    @IBAction func profiles(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerProfile!)
-        })
+    @IBAction func profiles(_: NSButton) {
+        self.presentAsModalWindow(self.viewControllerProfile!)
     }
 
-    // Userconfiguration button
-    @IBAction func userconfiguration(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerUserconfiguration!)
-        })
+    @IBAction func showHelp(_: AnyObject?) {
+        self.help()
     }
 
-    @IBAction func terminalApp(_ sender: NSButton) {
-        guard self.sshcmd != nil else {
-            self.data = ["Press the \"Check\" button before this action..."]
-            globalMainQueue.async(execute: { () -> Void in
-                self.detailsTable.reloadData()
-            })
-            return
-        }
-        self.sshcmd!.openTerminal()
-    }
-
-    // Just for grouping rsa and dsa radiobuttons
-    @IBAction func radioButtonsCreateKeyPair(_ sender: NSButton) {
-        // For selecting either of them
-    }
-
-    @IBAction func createPublicPrivateKeyPair(_ sender: NSButton) {
+    // Sidebar create keys
+    func createPublicPrivateRSAKeyPair() {
         self.outputprocess = OutputProcess()
-        self.sshcmd = Ssh(outputprocess: self.outputprocess)
-        guard self.sshcmd != nil else { return }
-        if self.createRsaKey.state == .on {
-            self.sshcmd!.createLocalKeysRsa()
-        }
-        if self.createDsaKey.state == .on {
-            self.sshcmd!.createLocalKeysDsa()
-        }
+        self.sshcmd = Ssh(outputprocess: self.outputprocess,
+                          processtermination: self.processtermination,
+                          filehandler: self.filehandler)
+        guard self.sshcmd?.islocalpublicrsakeypresent() ?? true == false else { return }
+        self.sshcmd?.creatersakeypair()
     }
 
-    @IBAction func source(_ sender: NSButton) {
-        guard self.sshcmd != nil else {
-            self.data = ["Press the \"Check\" button before this action..."]
-            globalMainQueue.async(execute: { () -> Void in
-                self.detailsTable.reloadData()
-            })
-            return
-        }
-        self.presentAsSheet(self.viewControllerSource!)
+    // Sidebar kilde
+    var viewControllerSource: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "CopyFilesID")
+            as? NSViewController)
     }
 
-    func createRemoteSshDirectory() {
-        guard self.hiddenID != nil else { return }
+    func source() {
         guard self.sshcmd != nil else { return }
-        self.sshcmd!.createSshRemoteDirectory(hiddenID: self.hiddenID!)
-        guard sshcmd!.commandCopyPasteTermninal != nil else {
-            self.sshCreateRemoteCatalog.stringValue = NSLocalizedString("... no remote server ...", comment: "Ssh")
-            return
-        }
-        self.sshCreateRemoteCatalog.stringValue = sshcmd!.commandCopyPasteTermninal!
-    }
-
-    func scpRsaPubKey() {
-        guard self.hiddenID != nil else { return }
-        guard self.sshcmd != nil else { return }
-        self.sshcmd!.scpPubKey(key: "rsa", hiddenID: self.hiddenID!)
-        guard sshcmd!.commandCopyPasteTermninal != nil else { return }
-        self.scpRsaCopyPasteCommand.stringValue = sshcmd!.commandCopyPasteTermninal!
-    }
-
-    func scpDsaPubKey() {
-        guard self.hiddenID != nil else { return }
-        guard self.sshcmd != nil else { return }
-        self.sshcmd!.scpPubKey(key: "dsa", hiddenID: self.hiddenID!)
-        guard sshcmd!.commandCopyPasteTermninal != nil else { return }
-        self.scpDsaCopyPasteCommand.stringValue = sshcmd!.commandCopyPasteTermninal!
-    }
-
-    @IBAction func checkRsaPubKey(_ sender: NSButton) {
-        self.outputprocess = OutputProcess()
-        self.sshcmd = Ssh(outputprocess: self.outputprocess)
-        guard self.execute else { return }
-        guard self.hiddenID != nil else { return }
-        guard self.sshcmd != nil else { return }
-        self.sshcmd!.chmodSsh(key: "rsa", hiddenID: self.hiddenID!)
-        self.sshcmd!.executeSshCommand()
-    }
-
-    @IBAction func checkDsaPubKey(_ sender: NSButton) {
-        self.outputprocess = OutputProcess()
-        self.sshcmd = Ssh(outputprocess: self.outputprocess)
-        guard self.execute else { return }
-        guard self.hiddenID != nil else { return }
-        guard self.sshcmd != nil else { return }
-        self.sshcmd!.chmodSsh(key: "dsa", hiddenID: self.hiddenID!)
-        self.sshcmd!.executeSshCommand()
+        self.presentAsModalWindow(self.viewControllerSource!)
     }
 
     override func viewDidLoad() {
@@ -163,82 +73,61 @@ class ViewControllerSsh: NSViewController, SetConfigurations, VcMain, Checkforrs
 
     override func viewDidAppear() {
         super.viewDidAppear()
-        self.checkDsaPubKeyButton.isEnabled = false
-        self.checkRsaPubKeyButton.isEnabled = false
-        self.createKeys.isEnabled = false
+        self.sidebaractionsDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsidebar) as? ViewControllerSideBar
+        self.sidebaractionsDelegate?.sidebaractions(action: .sshviewbuttons)
+        self.loadsshparameters()
     }
 
     override func viewDidDisappear() {
         super.viewDidDisappear()
-        self.scpDsaCopyPasteCommand.stringValue = ""
-        self.scpRsaCopyPasteCommand.stringValue = ""
-        self.sshCreateRemoteCatalog.stringValue = ""
+        self.copykeycommand.stringValue = ""
+        self.verifykeycommand.stringValue = ""
     }
 
-    @IBAction func commencecheck(_ sender: NSButton) {
-        self.checkPrivatePublicKey()
-    }
-
-    private func checkPrivatePublicKey() {
-        self.sshcmd = Ssh(outputprocess: nil)
-        self.sshcmd!.checkForLocalPubKeys()
-        if self.sshcmd!.rsaPubKeyExist {
+    func checkforPrivateandPublicRSAKeypair() {
+        self.sshcmd = Ssh(outputprocess: nil,
+                          processtermination: self.processtermination,
+                          filehandler: self.filehandler)
+        if self.sshcmd?.islocalpublicrsakeypresent() ?? false {
             self.rsaCheck.state = .on
-            self.createKeys.isEnabled = false
-            self.createRsaKey.state = .off
         } else {
             self.rsaCheck.state = .off
-            self.createKeys.isEnabled = true
-            self.createRsaKey.state = .on
-        }
-        if self.sshcmd!.dsaPubKeyExist {
-            self.dsaCheck.state = .on
-            self.createKeys.isEnabled = false
-            self.createDsaKey.state = .off
-        } else {
-            self.dsaCheck.state = .off
-            self.createKeys.isEnabled = true
-            if self.sshcmd!.rsaPubKeyExist {
-                self.createDsaKey.state = .on
-            }
         }
     }
-}
 
-extension ViewControllerSsh: DismissViewController {
-    func dismiss_view(viewcontroller: NSViewController) {
-        self.dismiss(viewcontroller)
-        self.checkDsaPubKeyButton.isEnabled = true
-        self.checkRsaPubKeyButton.isEnabled = true
-        self.createRemoteSshDirectory()
-        self.scpRsaPubKey()
-        self.scpDsaPubKey()
+    func copylocalpubrsakeyfile() {
+        guard self.sshcmd?.islocalpublicrsakeypresent() ?? false == true else { return }
+        self.outputprocess = OutputProcess()
+        self.sshcmd = Ssh(outputprocess: self.outputprocess,
+                          processtermination: self.processtermination,
+                          filehandler: self.filehandler)
+        if let hiddenID = self.hiddenID {
+            self.sshcmd?.copykeyfile(hiddenID: hiddenID)
+            self.copykeycommand.stringValue = sshcmd?.commandCopyPasteTerminal ?? ""
+            self.sshcmd?.verifyremotekey(hiddenID: hiddenID)
+            self.verifykeycommand.stringValue = sshcmd?.commandCopyPasteTerminal ?? ""
+        }
     }
 }
 
 extension ViewControllerSsh: GetSource {
     func getSourceindex(index: Int) {
         self.hiddenID = index
-        let config = self.configurations!.getConfigurations()[self.configurations!.getIndex(hiddenID!)]
-        if config.offsiteServer.isEmpty == true {
-            self.execute = false
-        } else {
-            self.execute = true
-        }
+        self.copylocalpubrsakeyfile()
+        self.loadsshparameters()
     }
 }
 
 extension ViewControllerSsh: NSTableViewDataSource {
-    func numberOfRows(in aTableView: NSTableView) -> Int {
+    func numberOfRows(in _: NSTableView) -> Int {
         return self.data?.count ?? 0
     }
 }
 
 extension ViewControllerSsh: NSTableViewDelegate {
-
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func tableView(_ tableView: NSTableView, viewFor _: NSTableColumn?, row: Int) -> NSView? {
         if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "outputID"), owner: nil) as? NSTableCellView {
-            cell.textField?.stringValue =  self.data?[row] ?? ""
+            cell.textField?.stringValue = self.data?[row] ?? ""
             return cell
         } else {
             return nil
@@ -246,38 +135,48 @@ extension ViewControllerSsh: NSTableViewDelegate {
     }
 }
 
-extension ViewControllerSsh: UpdateProgress {
-    func processTermination() {
-        globalMainQueue.async(execute: { () -> Void in
-            self.checkPrivatePublicKey()
-        })
-        guard self.sshcmd != nil else { return }
-        guard self.sshcmd!.chmod != nil else { return }
-        guard self.hiddenID != nil else { return }
-        switch self.sshcmd!.chmod!.pop() {
-        case .chmodRsa:
-            self.sshcmd!.checkRemotePubKey(key: "rsa", hiddenID: self.hiddenID!)
-            self.sshcmd!.executeSshCommand()
-        case .chmodDsa:
-            self.sshcmd!.checkRemotePubKey(key: "dsa", hiddenID: self.hiddenID!)
-            self.sshcmd!.executeSshCommand()
-        default:
-            self.sshcmd!.chmod = nil
+extension ViewControllerSsh {
+    func processtermination() {
+        globalMainQueue.async { () -> Void in
+            self.checkforPrivateandPublicRSAKeypair()
         }
     }
 
-    func fileHandler() {
-        self.data = self.outputprocess!.getOutput()
-        globalMainQueue.async(execute: { () -> Void in
+    func filehandler() {
+        self.data = self.outputprocess?.getOutput()
+        globalMainQueue.async { () -> Void in
             self.detailsTable.reloadData()
-        })
+        }
     }
 }
 
-extension ViewControllerSsh: OpenQuickBackup {
-    func openquickbackup() {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerQuickBackup!)
-        })
+extension ViewControllerSsh: DismissViewController {
+    func dismiss_view(viewcontroller: NSViewController) {
+        self.dismiss(viewcontroller)
+    }
+}
+
+extension ViewControllerSsh: Loadsshparameters {
+    func loadsshparameters() {
+        self.sshkeypathandidentityfile.stringValue = ViewControllerReference.shared.sshkeypathandidentityfile ?? ""
+        if let sshport = ViewControllerReference.shared.sshport {
+            self.sshport.stringValue = String(sshport)
+        } else {
+            self.sshport.stringValue = ""
+        }
+        self.checkforPrivateandPublicRSAKeypair()
+    }
+}
+
+extension ViewControllerSsh: Sidebarbuttonactions {
+    func sidebarbuttonactions(action: Sidebaractionsmessages) {
+        switch action {
+        case .CreateKey:
+            self.createPublicPrivateRSAKeyPair()
+        case .Remote:
+            self.source()
+        default:
+            return
+        }
     }
 }

@@ -5,12 +5,11 @@
 //  Created by Thomas Evensen on 26/04/2019.
 //  Copyright © 2019 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable cyclomatic_complexity function_body_length
+// swiftlint:disable cyclomatic_complexity function_body_length trailing_comma line_length
 
 import Foundation
 
 struct ConvertUserconfiguration {
-
     var userconfiguration: [NSMutableDictionary]?
 
     init() {
@@ -18,11 +17,11 @@ struct ConvertUserconfiguration {
         var detailedlogging: Int?
         var minimumlogging: Int?
         var fulllogging: Int?
-        var rsyncpath: String?
-        var restorepath: String?
         var marknumberofdayssince: String?
-        var automaticexecutelocalvolumes: Int?
+        var haltonerror: Int?
+        var monitornetworkconnection: Int?
         var array = [NSMutableDictionary]()
+        var json: Int?
 
         if ViewControllerReference.shared.rsyncversion3 {
             version3Rsync = 1
@@ -44,48 +43,61 @@ struct ConvertUserconfiguration {
         } else {
             fulllogging = 0
         }
-        if ViewControllerReference.shared.localrsyncpath != nil {
-            rsyncpath = ViewControllerReference.shared.localrsyncpath!
-        }
-        if ViewControllerReference.shared.restorePath != nil {
-            restorepath = ViewControllerReference.shared.restorePath!
-        }
-        if ViewControllerReference.shared.automaticexecutelocalvolumes {
-            automaticexecutelocalvolumes = 1
+        if ViewControllerReference.shared.haltonerror {
+            haltonerror = 1
         } else {
-            automaticexecutelocalvolumes = 0
+            haltonerror = 0
+        }
+        if ViewControllerReference.shared.monitornetworkconnection {
+            monitornetworkconnection = 1
+        } else {
+            monitornetworkconnection = 0
+        }
+        if ViewControllerReference.shared.json {
+            json = 1
+        } else {
+            json = 0
         }
         marknumberofdayssince = String(ViewControllerReference.shared.marknumberofdayssince)
         let dict: NSMutableDictionary = [
-            "version3Rsync": version3Rsync ?? 0 as Int,
-            "detailedlogging": detailedlogging ?? 0 as Int,
-            "minimumlogging": minimumlogging! as Int,
-            "fulllogging": fulllogging! as Int,
-            "marknumberofdayssince": marknumberofdayssince ?? "5.0",
-            "automaticexecutelocalvolumes": automaticexecutelocalvolumes! as Int]
-        if rsyncpath != nil {
-            dict.setObject(rsyncpath!, forKey: "rsyncPath" as NSCopying)
+            DictionaryStrings.version3Rsync.rawValue: version3Rsync ?? 0 as Int,
+            DictionaryStrings.detailedlogging.rawValue: detailedlogging ?? 0 as Int,
+            DictionaryStrings.minimumlogging.rawValue: minimumlogging ?? 0 as Int,
+            DictionaryStrings.fulllogging.rawValue: fulllogging ?? 0 as Int,
+            DictionaryStrings.marknumberofdayssince.rawValue: marknumberofdayssince ?? "5.0",
+            DictionaryStrings.haltonerror.rawValue: haltonerror ?? 0 as Int,
+            DictionaryStrings.monitornetworkconnection.rawValue: monitornetworkconnection ?? 0 as Int,
+            DictionaryStrings.json.rawValue: json ?? 0 as Int,
+        ]
+        if let rsyncpath = ViewControllerReference.shared.localrsyncpath {
+            dict.setObject(rsyncpath, forKey: DictionaryStrings.rsyncPath.rawValue as NSCopying)
         }
-        if restorepath != nil {
-            dict.setObject(restorepath!, forKey: "restorePath" as NSCopying)
+        if let restorepath = ViewControllerReference.shared.temporarypathforrestore {
+            dict.setObject(restorepath, forKey: DictionaryStrings.restorePath.rawValue as NSCopying)
         } else {
-            dict.setObject("", forKey: "restorePath" as NSCopying)
+            dict.setObject("", forKey: DictionaryStrings.restorePath.rawValue as NSCopying)
         }
-        if ViewControllerReference.shared.pathrsyncosx != nil {
-            dict.setObject(ViewControllerReference.shared.pathrsyncosx!, forKey: "pathrsyncosx" as NSCopying)
-        } else {
-            dict.setObject("", forKey: "pathrsyncosx" as NSCopying)
+        if let pathrsyncosx = ViewControllerReference.shared.pathrsyncosx {
+            if pathrsyncosx.isEmpty == false {
+                dict.setObject(pathrsyncosx, forKey: DictionaryStrings.pathrsyncosx.rawValue as NSCopying)
+            }
         }
-        if ViewControllerReference.shared.pathrsyncosxsched != nil {
-            dict.setObject(ViewControllerReference.shared.pathrsyncosxsched!, forKey: "pathrsyncosxsched" as NSCopying)
-        } else {
-            dict.setObject("", forKey: "pathrsyncosxsched" as NSCopying)
+        if let pathrsyncosxsched = ViewControllerReference.shared.pathrsyncosxsched {
+            if pathrsyncosxsched.isEmpty == false {
+                dict.setObject(pathrsyncosxsched, forKey: DictionaryStrings.pathrsyncosxsched.rawValue as NSCopying)
+            }
         }
-        if ViewControllerReference.shared.environment != nil {
-            dict.setObject(ViewControllerReference.shared.environment!, forKey: "environment" as NSCopying)
+        if let environment = ViewControllerReference.shared.environment {
+            dict.setObject(environment, forKey: DictionaryStrings.environment.rawValue as NSCopying)
         }
-        if ViewControllerReference.shared.environmentvalue != nil {
-            dict.setObject(ViewControllerReference.shared.environmentvalue!, forKey: "environmentvalue" as NSCopying)
+        if let environmentvalue = ViewControllerReference.shared.environmentvalue {
+            dict.setObject(environmentvalue, forKey: DictionaryStrings.environmentvalue.rawValue as NSCopying)
+        }
+        if let sshkeypathandidentityfile = ViewControllerReference.shared.sshkeypathandidentityfile {
+            dict.setObject(sshkeypathandidentityfile, forKey: DictionaryStrings.sshkeypathandidentityfile.rawValue as NSCopying)
+        }
+        if let sshport = ViewControllerReference.shared.sshport {
+            dict.setObject(sshport, forKey: DictionaryStrings.sshport.rawValue as NSCopying)
         }
         array.append(dict)
         self.userconfiguration = array

@@ -10,31 +10,26 @@
 import Cocoa
 
 // Protocol for progress indicator
-protocol Count: class {
+protocol Count: AnyObject {
     func maxCount() -> Int
     func inprogressCount() -> Int
 }
 
 class ViewControllerProgressProcess: NSViewController, SetConfigurations, SetDismisser, Abort {
-
     var count: Double = 0
     var maxcount: Double = 0
     weak var countDelegate: Count?
-    @IBOutlet weak var abort: NSButton!
-    @IBOutlet weak var progress: NSProgressIndicator!
+    @IBOutlet var abort: NSButton!
+    @IBOutlet var progress: NSProgressIndicator!
 
-    @IBAction func abort(_ sender: NSButton) {
+    @IBAction func abort(_: NSButton) {
         switch self.countDelegate {
-        case is ViewControllerMain:
-            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
         case is ViewControllerSnapshots:
             self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        case is ViewControllerCopyFiles:
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
         case is ViewControllerRestore:
             self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
         default:
-            return
+            self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
         }
         self.abort()
     }
@@ -46,12 +41,10 @@ class ViewControllerProgressProcess: NSViewController, SetConfigurations, SetDis
             if let pvc = (self.presentingViewController as? ViewControllerMain)?.singletask {
                 self.countDelegate = pvc
             }
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.countDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vccopyfiles) as? ViewControllerCopyFiles
-        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
-            self.countDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsnapshot) as? ViewControllerSnapshots
         } else if (self.presentingViewController as? ViewControllerRestore) != nil {
             self.countDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcrestore) as? ViewControllerRestore
+        } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
+            self.countDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsnapshot) as? ViewControllerSnapshots
         }
         self.initiateProgressbar()
         self.abort.isEnabled = true
@@ -69,7 +62,11 @@ class ViewControllerProgressProcess: NSViewController, SetConfigurations, SetDis
 
     // Progress bars
     private func initiateProgressbar() {
-        self.progress.maxValue = Double(self.countDelegate?.maxCount() ?? 0)
+        if (self.presentingViewController as? ViewControllerSnapshots) != nil {
+            self.progress.maxValue = Double(self.countDelegate?.maxCount() ?? 0)
+        } else {
+            self.progress.maxValue = Double((self.countDelegate?.maxCount() ?? 0) + ViewControllerReference.shared.extralines)
+        }
         self.progress.minValue = 0
         self.progress.doubleValue = 0
         self.progress.startAnimation(self)
@@ -78,11 +75,9 @@ class ViewControllerProgressProcess: NSViewController, SetConfigurations, SetDis
     private func updateProgressbar(_ value: Double) {
         self.progress.doubleValue = value
     }
-
 }
 
 extension ViewControllerProgressProcess: UpdateProgress {
-
     func processTermination() {
         self.stopProgressbar()
         switch self.countDelegate {
@@ -90,15 +85,14 @@ extension ViewControllerProgressProcess: UpdateProgress {
             self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
         case is ViewControllerSnapshots:
             self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
-        case is ViewControllerCopyFiles:
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
+        case is ViewControllerRestore:
+            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
         default:
             self.dismissview(viewcontroller: self, vcontroller: .vctabmain)
         }
     }
 
     func fileHandler() {
-        guard self.countDelegate != nil else { return }
-        self.updateProgressbar(Double(self.countDelegate!.inprogressCount()))
+        self.updateProgressbar(Double(self.countDelegate?.inprogressCount() ?? 0))
     }
 }

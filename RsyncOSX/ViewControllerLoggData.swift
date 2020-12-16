@@ -8,57 +8,37 @@
 //
 // swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
-class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules, Delay, Index, Connected, VcMain, Checkforrsync {
-
+class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules, Delay, Index, Connected, VcMain, Checkforrsync, Setcolor, Help {
     private var scheduleloggdata: ScheduleLoggData?
-    private var snapshotsloggdata: SnapshotsLoggData?
+    private var snapshotlogsandcatalogs: Snapshotlogsandcatalogs?
     private var filterby: Sortandfilter?
     private var index: Int?
     private var sortedascending: Bool = true
+    // Send messages to the sidebar
+    weak var sidebaractionsDelegate: Sidebaractions?
 
-    @IBOutlet weak var scheduletable: NSTableView!
-    @IBOutlet weak var search: NSSearchField!
-    @IBOutlet weak var numberOflogfiles: NSTextField!
-    @IBOutlet weak var sortdirection: NSButton!
-    @IBOutlet weak var selectedrows: NSTextField!
-    @IBOutlet weak var info: NSTextField!
-    @IBOutlet weak var working: NSProgressIndicator!
-    @IBOutlet weak var selectbutton: NSButton!
-
-    @IBAction func totinfo(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerRemoteInfo!)
-        })
-    }
-
-    @IBAction func quickbackup(_ sender: NSButton) {
-        guard self.checkforrsync() == false else { return }
-        self.openquickbackup()
-    }
-
-    @IBAction func automaticbackup(_ sender: NSButton) {
-        self.presentAsSheet(self.viewControllerEstimating!)
-    }
+    @IBOutlet var scheduletable: NSTableView!
+    @IBOutlet var search: NSSearchField!
+    @IBOutlet var numberOflogfiles: NSTextField!
+    @IBOutlet var sortdirection: NSButton!
+    @IBOutlet var selectedrows: NSTextField!
+    @IBOutlet var info: NSTextField!
+    @IBOutlet var working: NSProgressIndicator!
+    @IBOutlet var selectbutton: NSButton!
 
     // Selecting profiles
-    @IBAction func profiles(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerProfile!)
-        })
+    @IBAction func profiles(_: NSButton) {
+        self.presentAsModalWindow(self.viewControllerProfile!)
     }
 
-    // Userconfiguration button
-    @IBAction func userconfiguration(_ sender: NSButton) {
-        globalMainQueue.async(execute: { () -> Void in
-            self.presentAsSheet(self.viewControllerUserconfiguration!)
-        })
+    @IBAction func showHelp(_: AnyObject?) {
+        self.help()
     }
 
-    @IBAction func sortdirection(_ sender: NSButton) {
+    @IBAction func sortdirection(_: NSButton) {
         if self.sortedascending == true {
             self.sortedascending = false
             self.sortdirection.image = #imageLiteral(resourceName: "down")
@@ -66,34 +46,35 @@ class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules,
             self.sortedascending = true
             self.sortdirection.image = #imageLiteral(resourceName: "up")
         }
-        guard self.filterby != nil else { return }
-        switch self.filterby! {
+        switch self.filterby ?? .localcatalog {
         case .executedate:
-            self.scheduleloggdata?.loggdata = self.scheduleloggdata!.sortbydate(notsortedlist: self.scheduleloggdata?.loggdata, sortdirection: self.sortedascending)
+            self.scheduleloggdata?.loggdata = self.scheduleloggdata?.sortbydate(notsortedlist: self.scheduleloggdata?.loggdata, sortdirection: self.sortedascending)
         default:
-            self.scheduleloggdata?.loggdata = self.scheduleloggdata!.sortbystring(notsortedlist: self.scheduleloggdata?.loggdata, sortby: self.filterby!, sortdirection: self.sortedascending)
+            self.scheduleloggdata?.loggdata = self.scheduleloggdata?.sortbystring(notsortedlist: self.scheduleloggdata?.loggdata, sortby: self.filterby ?? .localcatalog, sortdirection: self.sortedascending)
         }
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.scheduletable.reloadData()
-        })
+        }
     }
 
-    @IBAction func selectlogs(_ sender: NSButton) {
-        guard self.scheduleloggdata!.loggdata != nil else { return }
-        for i in 0 ..< self.scheduleloggdata!.loggdata!.count {
-            if self.scheduleloggdata!.loggdata![i].value(forKey: "deleteCellID") as? Int == 1 {
-                self.scheduleloggdata!.loggdata![i].setValue(0, forKey: "deleteCellID")
+    @IBAction func selectlogs(_: NSButton) {
+        guard self.scheduleloggdata?.loggdata != nil else { return }
+        for i in 0 ..< (self.scheduleloggdata?.loggdata?.count ?? 0) {
+            if self.scheduleloggdata?.loggdata?[i].value(forKey: DictionaryStrings.deleteCellID.rawValue) as? Int == 1 {
+                self.scheduleloggdata?.loggdata?[i].setValue(0, forKey: DictionaryStrings.deleteCellID.rawValue)
             } else {
-                self.scheduleloggdata!.loggdata![i].setValue(1, forKey: "deleteCellID")
+                self.scheduleloggdata?.loggdata?[i].setValue(1, forKey: DictionaryStrings.deleteCellID.rawValue)
             }
         }
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.selectedrows.stringValue = NSLocalizedString("Selected logs:", comment: "Logg") + " " + self.selectednumber()
             self.scheduletable.reloadData()
-        })
+        }
     }
 
-    @IBAction func deletealllogs(_ sender: NSButton) {
+    // Sidebar delete
+    func deletealllogs() {
+        guard self.selectednumber() != "0" else { return }
         let question: String = NSLocalizedString("Delete", comment: "Logg")
         let text: String = NSLocalizedString("Cancel or Delete", comment: "Logg")
         let dialog: String = NSLocalizedString("Delete", comment: "Logg")
@@ -105,8 +86,11 @@ class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules,
     }
 
     private func selectednumber() -> String {
-        let number = self.scheduleloggdata!.loggdata!.filter({($0.value(forKey: "deleteCellID") as? Int)! == 1}).count
-        return String(number)
+        if let number = self.scheduleloggdata?.loggdata?.filter({ ($0.value(forKey: DictionaryStrings.deleteCellID.rawValue) as? Int) == 1 }).count {
+            return String(number)
+        } else {
+            return "0"
+        }
     }
 
     override func viewDidLoad() {
@@ -122,34 +106,41 @@ class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules,
 
     override func viewDidAppear() {
         super.viewDidAppear()
+        self.sidebaractionsDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcsidebar) as? ViewControllerSideBar
+        self.sidebaractionsDelegate?.sidebaractions(action: .logsviewbuttons)
+        self.info.textColor = setcolor(nsviewcontroller: self, color: .green)
         self.index = self.index()
         if let index = self.index {
             let hiddenID = self.configurations?.gethiddenID(index: index) ?? -1
             guard hiddenID > -1 else { return }
-            let config = self.configurations?.getConfigurations()[index]
-            self.scheduleloggdata = ScheduleLoggData(hiddenID: hiddenID, sortascending: self.sortedascending)
-            if self.connected(config: config!) {
-                if config?.task == "snapshot" { self.working.startAnimation(nil) }
-                self.snapshotsloggdata = SnapshotsLoggData(config: config!, insnapshot: false)
-            }
-            if self.indexfromwhere() == .vcsnapshot {
-                self.info.stringValue = Infologgdata().info(num: 2)
-            } else {
-                self.info.stringValue = Infologgdata().info(num: 1)
+            if let config = self.configurations?.getConfigurations()?[index] {
+                self.scheduleloggdata = ScheduleLoggData(hiddenID: hiddenID, sortascending: self.sortedascending)
+                if self.connected(config: config), config.task == ViewControllerReference.shared.snapshot {
+                    self.working.startAnimation(nil)
+                    self.snapshotlogsandcatalogs = Snapshotlogsandcatalogs(config: config,
+                                                                           getsnapshots: false,
+                                                                           processtermination: self.processtermination,
+                                                                           filehandler: self.filehandler)
+                }
+                if self.indexfromwhere() == .vcsnapshot {
+                    self.info.stringValue = Infologgdata().info(num: 2)
+                } else {
+                    self.info.stringValue = Infologgdata().info(num: 1)
+                }
             }
         } else {
             self.info.stringValue = Infologgdata().info(num: 0)
             self.scheduleloggdata = ScheduleLoggData(sortascending: self.sortedascending)
         }
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.scheduletable.reloadData()
-        })
+        }
     }
 
     override func viewDidDisappear() {
         super.viewDidDisappear()
         self.scheduleloggdata = nil
-        self.snapshotsloggdata = nil
+        self.snapshotlogsandcatalogs = nil
         self.working.stopAnimation(nil)
         self.selectbutton.state = .off
     }
@@ -162,60 +153,60 @@ class ViewControllerLoggData: NSViewController, SetConfigurations, SetSchedules,
 }
 
 extension ViewControllerLoggData: NSSearchFieldDelegate {
-
-    func controlTextDidChange(_ obj: Notification) {
+    func controlTextDidChange(_: Notification) {
         self.delayWithSeconds(0.25) {
             let filterstring = self.search.stringValue
             self.selectbutton.state = .off
             if filterstring.isEmpty {
                 self.reloadtabledata()
             } else {
-                self.scheduleloggdata!.myownfilter(search: filterstring, filterby: self.filterby)
-                globalMainQueue.async(execute: { () -> Void in
+                self.scheduleloggdata?.filter(search: filterstring, filterby: self.filterby)
+                globalMainQueue.async { () -> Void in
                     self.scheduletable.reloadData()
-                })
+                }
             }
         }
     }
 
-    func searchFieldDidEndSearching(_ sender: NSSearchField) {
+    func searchFieldDidEndSearching(_: NSSearchField) {
         self.index = nil
         self.reloadtabledata()
         self.selectbutton.state = .off
     }
-
 }
 
 extension ViewControllerLoggData: NSTableViewDataSource {
-
-    func numberOfRows(in tableView: NSTableView) -> Int {
+    func numberOfRows(in _: NSTableView) -> Int {
         if self.scheduleloggdata == nil {
             self.numberOflogfiles.stringValue = NSLocalizedString("Number of logs:", comment: "Logg")
             self.selectedrows.stringValue = NSLocalizedString("Selected logs:", comment: "Logg") + " 0"
             return 0
         } else {
             self.numberOflogfiles.stringValue = NSLocalizedString("Number of logs:", comment: "Logg")
-                + " " + String(self.scheduleloggdata!.loggdata?.count ?? 0)
+                + " " + String(self.scheduleloggdata?.loggdata?.count ?? 0)
             self.selectedrows.stringValue = NSLocalizedString("Selected logs:", comment: "Logg")
                 + " " + self.selectednumber()
-            return self.scheduleloggdata!.loggdata?.count ?? 0
+            return self.scheduleloggdata?.loggdata?.count ?? 0
         }
     }
-
 }
 
 extension ViewControllerLoggData: NSTableViewDelegate {
-
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        guard self.scheduleloggdata != nil else { return nil }
-        guard row < self.scheduleloggdata!.loggdata!.count else { return nil }
-        let object: NSDictionary = self.scheduleloggdata!.loggdata![row]
-        if tableColumn!.identifier.rawValue == "deleteCellID" ||
-            tableColumn!.identifier.rawValue == "snapCellID" {
-            return object[tableColumn!.identifier] as? Int
-        } else {
-            return object[tableColumn!.identifier] as? String
+    func tableView(_: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+        if let tableColumn = tableColumn {
+            guard row < self.scheduleloggdata?.loggdata?.count ?? -1 else { return nil }
+            if let object: NSDictionary = self.scheduleloggdata?.loggdata?[row] {
+                if tableColumn.identifier.rawValue == DictionaryStrings.deleteCellID.rawValue ||
+                    tableColumn.identifier.rawValue == DictionaryStrings.snapCellID.rawValue
+                {
+                    return object[tableColumn.identifier] as? Int
+                } else {
+                    return object[tableColumn.identifier] as? String
+                }
+            }
+            return nil
         }
+        return nil
     }
 
     // setting which table row is selected
@@ -229,11 +220,13 @@ extension ViewControllerLoggData: NSTableViewDelegate {
         var sortbystring = true
         switch column {
         case 0:
-             self.filterby = .task
-        case 3:
+            self.filterby = .task
+        case 2:
             self.filterby = .backupid
-        case 4:
+        case 3:
             self.filterby = .localcatalog
+        case 4:
+            self.filterby = .offsitecatalog
         case 5:
             self.filterby = .offsiteserver
         case 6:
@@ -243,74 +236,79 @@ extension ViewControllerLoggData: NSTableViewDelegate {
             return
         }
         if sortbystring {
-            self.scheduleloggdata?.loggdata = self.scheduleloggdata!.sortbystring(notsortedlist: self.scheduleloggdata?.loggdata, sortby: self.filterby!, sortdirection: self.sortedascending)
+            self.scheduleloggdata?.loggdata = self.scheduleloggdata?.sortbystring(notsortedlist: self.scheduleloggdata?.loggdata, sortby: self.filterby, sortdirection: self.sortedascending)
         } else {
-            self.scheduleloggdata?.loggdata = self.scheduleloggdata!.sortbydate(notsortedlist: self.scheduleloggdata?.loggdata, sortdirection: self.sortedascending)
+            self.scheduleloggdata?.loggdata = self.scheduleloggdata?.sortbydate(notsortedlist: self.scheduleloggdata?.loggdata, sortdirection: self.sortedascending)
         }
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.scheduletable.reloadData()
-        })
+        }
     }
 
-    func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-        if tableColumn!.identifier.rawValue == "deleteCellID" {
-            var delete: Int = (self.scheduleloggdata?.loggdata![row].value(forKey: "deleteCellID") as? Int)!
-            if delete == 0 { delete = 1 } else if delete == 1 { delete = 0 }
-            switch tableColumn!.identifier.rawValue {
-            case "deleteCellID":
-                self.scheduleloggdata?.loggdata![row].setValue(delete, forKey: "deleteCellID")
-            default:
-                break
+    func tableView(_: NSTableView, setObjectValue _: Any?, for tableColumn: NSTableColumn?, row: Int) {
+        if let tableColumn = tableColumn {
+            if tableColumn.identifier.rawValue == DictionaryStrings.deleteCellID.rawValue {
+                var delete: Int = (self.scheduleloggdata?.loggdata![row].value(forKey: DictionaryStrings.deleteCellID.rawValue) as? Int)!
+                if delete == 0 { delete = 1 } else if delete == 1 { delete = 0 }
+                switch tableColumn.identifier.rawValue {
+                case DictionaryStrings.deleteCellID.rawValue:
+                    self.scheduleloggdata?.loggdata?[row].setValue(delete, forKey: DictionaryStrings.deleteCellID.rawValue)
+                default:
+                    break
+                }
+                globalMainQueue.async { () -> Void in
+                    self.selectedrows.stringValue = NSLocalizedString("Selected logs:", comment: "Logg") + " " + self.selectednumber()
+                }
             }
-            globalMainQueue.async(execute: { () -> Void in
-                self.selectedrows.stringValue = NSLocalizedString("Selected logs:", comment: "Logg") + " " + self.selectednumber()
-            })
         }
     }
 }
 
 extension ViewControllerLoggData: Reloadandrefresh {
-
     func reloadtabledata() {
         if let index = self.index {
             let hiddenID = self.configurations?.gethiddenID(index: index) ?? -1
             guard hiddenID > -1 else { return }
-            let config = self.configurations?.getConfigurations()[index]
-            self.scheduleloggdata = ScheduleLoggData(hiddenID: hiddenID, sortascending: self.sortedascending)
-            if self.connected(config: config!) {
-                if config?.task == "snapshot" { self.working.startAnimation(nil) }
-                self.snapshotsloggdata = SnapshotsLoggData(config: config!, insnapshot: false)
+            if let config = self.configurations?.getConfigurations()?[index] {
+                self.scheduleloggdata = ScheduleLoggData(hiddenID: hiddenID, sortascending: self.sortedascending)
+                if self.connected(config: config) {
+                    if config.task == ViewControllerReference.shared.snapshot { self.working.startAnimation(nil) }
+                    self.snapshotlogsandcatalogs = Snapshotlogsandcatalogs(config: config,
+                                                                           getsnapshots: false,
+                                                                           processtermination: self.processtermination,
+                                                                           filehandler: self.filehandler)
+                }
             }
         } else {
             self.scheduleloggdata = ScheduleLoggData(sortascending: self.sortedascending)
         }
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.scheduletable.reloadData()
-        })
+        }
     }
 }
 
-extension ViewControllerLoggData: UpdateProgress {
-    func processTermination() {
-        self.snapshotsloggdata?.processTermination()
-        guard self.snapshotsloggdata?.outputprocess?.error == false else { return }
-        self.scheduleloggdata?.intersect(snapshotaloggdata: self.snapshotsloggdata)
+extension ViewControllerLoggData {
+    func processtermination() {
+        self.snapshotlogsandcatalogs?.loggdata()
+        guard self.snapshotlogsandcatalogs?.outputprocess?.error == false else { return }
+        self.scheduleloggdata?.align(snapshotlogsandcatalogs: self.snapshotlogsandcatalogs)
         self.working.stopAnimation(nil)
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.scheduletable.reloadData()
-        })
+        }
     }
 
-    func fileHandler() {
+    func filehandler() {
         //
     }
 }
 
 extension ViewControllerLoggData: OpenQuickBackup {
     func openquickbackup() {
-        globalMainQueue.async(execute: { () -> Void in
+        globalMainQueue.async { () -> Void in
             self.presentAsSheet(self.viewControllerQuickBackup!)
-        })
+        }
     }
 }
 
@@ -321,11 +319,22 @@ extension ViewControllerLoggData: DismissViewController {
 }
 
 extension ViewControllerLoggData: NewProfile {
-    func newProfile(profile: String?) {
+    func newprofile(profile _: String?, selectedindex _: Int?) {
         self.reloadtabledata()
     }
 
-    func enableselectprofile() {
+    func reloadprofilepopupbutton() {
         //
+    }
+}
+
+extension ViewControllerLoggData: Sidebarbuttonactions {
+    func sidebarbuttonactions(action: Sidebaractionsmessages) {
+        switch action {
+        case .Delete:
+            self.deletealllogs()
+        default:
+            return
+        }
     }
 }

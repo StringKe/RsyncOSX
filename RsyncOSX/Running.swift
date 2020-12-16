@@ -6,41 +6,29 @@
 //  Copyright © 2018 Thomas Evensen. All rights reserved.
 //
 
-import Foundation
 import AppKit
+import Foundation
 
 final class Running {
-
     let rsyncOSX = "no.blogspot.RsyncOSX"
     let rsyncOSXsched = "no.blogspot.RsyncOSXsched"
-    private var rsyncOSXisrunning: Bool = false
-    private var rsyncOSXschedisrunning: Bool = false
+    var rsyncOSXisrunning: Bool = false
+    var rsyncOSXschedisrunning: Bool = false
     var menuappnoconfig: Bool = true
 
-    var enablemenuappbutton: Bool {
-        // Check the flags
-        guard ViewControllerReference.shared.pathrsyncosxsched != nil else {
-            self.menuappnoconfig = true
-            return false
-        }
-        guard ViewControllerReference.shared.pathrsyncosxsched!.isEmpty == false else {
-            self.menuappnoconfig = true
-            return false
-        }
-        self.menuappnoconfig = false
-        if self.rsyncOSXschedisrunning == true {
-            return false
-        } else {
-            return true
-        }
+    func verifyrsyncosxsched() -> Bool {
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: (ViewControllerReference.shared.pathrsyncosxsched ?? "/Applications/") +
+            ViewControllerReference.shared.namersyncosssched) else { return false }
+        return true
     }
 
     init() {
         // Get all running applications
         let workspace = NSWorkspace.shared
         let applications = workspace.runningApplications
-        let rsyncosx = applications.filter({return ($0.bundleIdentifier == self.rsyncOSX)})
-        let rsyncosxschde = applications.filter({return ($0.bundleIdentifier == self.rsyncOSXsched)})
+        let rsyncosx = applications.filter { ($0.bundleIdentifier == self.rsyncOSX) }
+        let rsyncosxschde = applications.filter { ($0.bundleIdentifier == self.rsyncOSXsched) }
         if rsyncosx.count > 0 {
             self.rsyncOSXisrunning = true
         } else {

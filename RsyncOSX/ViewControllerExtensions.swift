@@ -5,115 +5,124 @@
 //  Created by Thomas Evensen on 28.10.2017.
 //  Copyright © 2017 Thomas Evensen. All rights reserved.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length file_length
 
-import Foundation
 import Cocoa
+import Foundation
 
 protocol VcMain {
     var storyboard: NSStoryboard? { get }
 }
 
 extension VcMain {
-
     var storyboard: NSStoryboard? {
         return NSStoryboard(name: "Main", bundle: nil)
     }
 
-    // Information about rsync output
-    // self.presentViewControllerAsSheet(self.ViewControllerInformation)
-    var viewControllerInformation: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardInformationID")
+    var sheetviewstoryboard: NSStoryboard? {
+        return NSStoryboard(name: "SheetViews", bundle: nil)
+    }
+
+    // StoryboardOutputID
+    var viewControllerAllOutput: NSViewController? {
+        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardOutputID")
             as? NSViewController)
     }
 
-    // Progressbar process
-    // self.presentViewControllerAsSheet(self.viewControllerProgress)
-    var viewControllerProgress: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardProgressID")
-            as? NSViewController)
-    }
-
-    // Batch process
-    // self.presentViewControllerAsSheet(self.ViewControllerBatch)
-    var viewControllerBatch: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardBatchID")
-            as? NSViewController)
-    }
-
+    // Sheetviews
     // Userconfiguration
-    // self.presentViewControllerAsSheet(self.ViewControllerUserconfiguration)
     var viewControllerUserconfiguration: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardUserconfigID")
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardUserconfigID")
             as? NSViewController)
     }
 
-    // Rsync userparams
-    // self.presentViewControllerAsSheet(self.ViewControllerRsyncParams)
-    var viewControllerRsyncParams: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardRsyncParamsID")
+    // Information about rsync output
+    var viewControllerInformation: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardInformationID")
             as? NSViewController)
     }
 
-    // New version window
-    // self.presentViewControllerAsSheet(self.newVersionViewController)
-    var newVersionViewController: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardnewVersionID")
+    // AssistID
+    var viewControllerAssist: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "AssistID")
             as? NSViewController)
     }
 
-    // Edit
-    // self.presentViewControllerAsSheet(self.editViewController)
-    var editViewController: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardEditID")
+    // Move config files
+    var viewControllerMove: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "MoveID")
             as? NSViewController)
     }
 
     // Profile
-    // self.presentViewControllerAsSheet(self.viewControllerProfile)
     var viewControllerProfile: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "ProfileID")
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "ProfileID")
             as? NSViewController)
     }
 
     // About
-    // self.presentViewControllerAsSheet(self.viewControllerAbout)
     var viewControllerAbout: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "AboutID")
-            as? NSViewController)
-    }
-
-    // Quick backup process
-    // self.presentViewControllerAsSheet(self.viewControllerQuickBackup)
-    var viewControllerQuickBackup: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardQuickBackupID")
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "AboutID")
             as? NSViewController)
     }
 
     // Remote Info
-    // self.presentViewControllerAsSheet(self.viewControllerQuickBackup)
     var viewControllerRemoteInfo: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardRemoteInfoID")
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardRemoteInfoID")
             as? NSViewController)
     }
 
-    // Estimating
-    // self.presentViewControllerAsSheet(self.viewControllerEstimating)
-    var viewControllerEstimating: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardEstimatingID")
+    // Quick backup process
+    var viewControllerQuickBackup: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardQuickBackupID")
             as? NSViewController)
     }
 
     // local and remote info
-    // self.presentViewControllerAsSheet(self.viewControllerInformationLocalRemote)
     var viewControllerInformationLocalRemote: NSViewController? {
-        return (self.storyboard?.instantiateController(withIdentifier: "StoryboardLocalRemoteID")
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardLocalRemoteID")
+            as? NSViewController)
+    }
+
+    // Estimating
+    var viewControllerEstimating: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardEstimatingID")
+            as? NSViewController)
+    }
+
+    // Progressbar process
+    var viewControllerProgress: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardProgressID")
+            as? NSViewController)
+    }
+
+    // Rsync userparams
+    var viewControllerRsyncParams: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardRsyncParamsID")
+            as? NSViewController)
+    }
+
+    // Edit
+    var editViewController: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "StoryboardEditID")
+            as? NSViewController)
+    }
+
+    // RsyncCommand
+    var rsynccommand: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "RsyncCommand")
+            as? NSViewController)
+    }
+
+    // All profiles
+    var allprofiles: NSViewController? {
+        return (self.sheetviewstoryboard?.instantiateController(withIdentifier: "ViewControllerAllProfilesID")
             as? NSViewController)
     }
 }
 
 // Protocol for dismissing a viewcontroller
-protocol DismissViewController: class {
+protocol DismissViewController: AnyObject {
     func dismiss_view(viewcontroller: NSViewController)
 }
 
@@ -125,56 +134,52 @@ extension SetDismisser {
     var dismissDelegateMain: DismissViewController? {
         return ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
     }
+
     var dismissDelegateSchedule: DismissViewController? {
         return ViewControllerReference.shared.getvcref(viewcontroller: .vctabschedule) as? ViewControllerSchedule
     }
+
     var dismissDelegateCopyFiles: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vccopyfiles) as? ViewControllerCopyFiles
-    }
-    var dismissDelegateNewConfigurations: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vcnewconfigurations) as? ViewControllerNewConfigurations
-    }
-    var dismissDelegateSsh: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vcssh) as? ViewControllerSsh
-    }
-    var dimissDelegateSnapshot: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vcsnapshot) as? ViewControllerSnapshots
-    }
-    var dismissDelegateVerify: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vcverify) as? ViewControllerVerify
-    }
-    var dismissDelegateLoggData: DismissViewController? {
-        return ViewControllerReference.shared.getvcref(viewcontroller: .vcloggdata) as? ViewControllerLoggData
-    }
-    var dismissDelegateRestore: DismissViewController? {
         return ViewControllerReference.shared.getvcref(viewcontroller: .vcrestore) as? ViewControllerRestore
     }
 
-    func dismissview(viewcontroller: NSViewController, vcontroller: ViewController) {
+    var dismissDelegateNewConfigurations: DismissViewController? {
+        return ViewControllerReference.shared.getvcref(viewcontroller: .vcnewconfigurations) as? ViewControllerNewConfigurations
+    }
+
+    var dimissDelegateSnapshot: DismissViewController? {
+        return ViewControllerReference.shared.getvcref(viewcontroller: .vcsnapshot) as? ViewControllerSnapshots
+    }
+
+    var dismissDelegateLoggData: DismissViewController? {
+        return ViewControllerReference.shared.getvcref(viewcontroller: .vcloggdata) as? ViewControllerLoggData
+    }
+
+    var dismissDelegateSsh: DismissViewController? {
+        return ViewControllerReference.shared.getvcref(viewcontroller: .vcssh) as? ViewControllerSsh
+    }
+
+    func dismissview(viewcontroller _: NSViewController, vcontroller: ViewController) {
         if vcontroller == .vctabmain {
             self.dismissDelegateMain?.dismiss_view(viewcontroller: (self as? NSViewController)!)
         } else if vcontroller == .vctabschedule {
             self.dismissDelegateSchedule?.dismiss_view(viewcontroller: (self as? NSViewController)!)
-        } else if vcontroller == .vccopyfiles {
+        } else if vcontroller == .vcrestore {
             self.dismissDelegateCopyFiles?.dismiss_view(viewcontroller: (self as? NSViewController)!)
         } else if vcontroller == .vcnewconfigurations {
             self.dismissDelegateNewConfigurations?.dismiss_view(viewcontroller: (self as? NSViewController)!)
-        } else if vcontroller == .vcssh {
-            self.dismissDelegateSsh?.dismiss_view(viewcontroller: (self as? NSViewController)!)
         } else if vcontroller == .vcsnapshot {
             self.dimissDelegateSnapshot?.dismiss_view(viewcontroller: (self as? NSViewController)!)
-        } else if vcontroller == .vcverify {
-            self.dismissDelegateVerify?.dismiss_view(viewcontroller: (self as? NSViewController)!)
         } else if vcontroller == .vcloggdata {
             self.dismissDelegateLoggData?.dismiss_view(viewcontroller: (self as? NSViewController)!)
-        } else if vcontroller == .vcrestore {
-            self.dismissDelegateRestore?.dismiss_view(viewcontroller: (self as? NSViewController)!)
+        } else if vcontroller == .vcssh {
+            self.dismissDelegateSsh?.dismiss_view(viewcontroller: (self as? NSViewController)!)
         }
     }
 }
 
 // Protocol for deselecting rowtable
-protocol DeselectRowTable: class {
+protocol DeselectRowTable: AnyObject {
     func deselect()
 }
 
@@ -187,6 +192,7 @@ extension Deselect {
     var deselectDelegateMain: DeselectRowTable? {
         return ViewControllerReference.shared.getvcref(viewcontroller: .vctabmain) as? ViewControllerMain
     }
+
     var deselectDelegateSchedule: DeselectRowTable? {
         return ViewControllerReference.shared.getvcref(viewcontroller: .vctabschedule) as? ViewControllerSchedule
     }
@@ -242,23 +248,40 @@ extension Delay {
 }
 
 protocol Connected {
-    func connected(config: Configuration) -> Bool
+    func connected(config: Configuration?) -> Bool
+    func connected(server: String?) -> Bool
 }
 
 extension Connected {
-    func connected(config: Configuration) -> Bool {
+    func connected(config: Configuration?) -> Bool {
         var port: Int = 22
-        if config.offsiteServer.isEmpty == false {
-            if let sshport: Int = config.sshport { port = sshport }
-            let success = TCPconnections().testTCPconnection(config.offsiteServer, port: port, timeout: 1)
-            return success
-        } else {
-            return true
+        if let config = config {
+            if config.offsiteServer.isEmpty == false {
+                if let sshport: Int = config.sshport { port = sshport }
+                let success = TCPconnections().testTCPconnection(config.offsiteServer, port: port, timeout: 1)
+                return success
+            } else {
+                return true
+            }
         }
+        return false
+    }
+
+    func connected(server: String?) -> Bool {
+        if let server = server {
+            let port: Int = 22
+            if server.isEmpty == false {
+                let success = TCPconnections().testTCPconnection(server, port: port, timeout: 1)
+                return success
+            } else {
+                return true
+            }
+        }
+        return false
     }
 }
 
-protocol Abort: class {
+protocol Abort: AnyObject {
     func abort()
 }
 
@@ -269,8 +292,18 @@ extension Abort {
     }
 }
 
-protocol GetOutput: class {
-    func getoutput () -> [String]
+protocol Help: AnyObject {
+    func help()
+}
+
+extension Help {
+    func help() {
+        NSWorkspace.shared.open(URL(string: "https://rsyncosx.netlify.app/post/rsyncosxdocs/")!)
+    }
+}
+
+protocol GetOutput: AnyObject {
+    func getoutput() -> [String]
 }
 
 protocol OutPut {
@@ -287,7 +320,7 @@ extension OutPut {
     }
 }
 
-protocol RsyncIsChanged: class {
+protocol RsyncIsChanged: AnyObject {
     func rsyncischanged()
 }
 
@@ -312,21 +345,26 @@ protocol ChangeTemporaryRestorePath {
 
 extension ChangeTemporaryRestorePath {
     func changetemporaryrestorepath() {
-        let view = ViewControllerReference.shared.getvcref(viewcontroller: .vccopyfiles) as? ViewControllerCopyFiles
+        let view = ViewControllerReference.shared.getvcref(viewcontroller: .vcrestore) as? ViewControllerRestore
         view?.temporaryrestorepath()
-        let view2 = ViewControllerReference.shared.getvcref(viewcontroller: .vcrestore) as? ViewControllerRestore
-        view2?.temporaryrestorepath()
     }
 }
 
-protocol Createandreloadconfigurations: class {
-    func createandreloadconfigurations()
+extension Sequence {
+    func sorted<T: Comparable>(
+        by keyPath: KeyPath<Element, T>,
+        using comparator: (T, T) -> Bool = (<)
+    ) -> [Element] {
+        sorted { a, b in
+            comparator(a[keyPath: keyPath], b[keyPath: keyPath])
+        }
+    }
 }
 
 // Protocol for sorting
 protocol Sorting {
     func sortbydate(notsortedlist: [NSMutableDictionary]?, sortdirection: Bool) -> [NSMutableDictionary]?
-    func sortbystring(notsortedlist: [NSMutableDictionary]?, sortby: Sortandfilter, sortdirection: Bool) -> [NSMutableDictionary]?
+    func sortbystring(notsortedlist: [NSMutableDictionary]?, sortby: Sortandfilter?, sortdirection: Bool) -> [NSMutableDictionary]?
 }
 
 extension Sorting {
@@ -335,56 +373,55 @@ extension Sorting {
         dateformatter.formatterBehavior = .behavior10_4
         dateformatter.dateStyle = .medium
         dateformatter.timeStyle = .short
-        let sorted = notsortedlist?.sorted { (dict1, dict2) -> Bool in
-            let date1localized = dateformatter.date(from: (dict1.value(forKey: "dateExecuted") as? String) ?? "")
-            if let date2localized = dateformatter.date(from: (dict2.value(forKey: "dateExecuted") as? String) ?? "") {
-                if date1localized?.timeIntervalSince(date2localized) ?? -1 > 0 {
-                    return sortdirection
+        let sorted = notsortedlist?.sorted { (d1, d2) -> Bool in
+            if let d1 = dateformatter.date(from: (d1.value(forKey: DictionaryStrings.dateExecuted.rawValue) as? String) ?? "") {
+                if let d2 = dateformatter.date(from: (d2.value(forKey: DictionaryStrings.dateExecuted.rawValue) as? String) ?? "") {
+                    if d1.timeIntervalSince(d2) > 0 {
+                        return sortdirection
+                    } else {
+                        return !sortdirection
+                    }
                 } else {
                     return !sortdirection
                 }
-            } else {
-                return !sortdirection
             }
+            return false
         }
         return sorted
     }
 
-    func sortbystring(notsortedlist: [NSMutableDictionary]?, sortby: Sortandfilter, sortdirection: Bool) -> [NSMutableDictionary]? {
-        let sortstring = self.filterbystring(filterby: sortby)
-        let sorted = notsortedlist?.sorted { (dict1, dict2) -> Bool in
-            if (dict1.value(forKey: sortstring) as? String) ?? "" > (dict2.value(forKey: sortstring) as? String) ?? "" {
-                return sortdirection
-            } else {
-                return !sortdirection
+    func sortbystring(notsortedlist: [NSMutableDictionary]?, sortby: Sortandfilter?, sortdirection: Bool) -> [NSMutableDictionary]? {
+        let sorted = notsortedlist?.sorted { (d1, d2) -> Bool in
+            if let d1 = d1.value(forKey: self.filterbystring(filterby: sortby)) as? String,
+               let d2 = d2.value(forKey: self.filterbystring(filterby: sortby)) as? String
+            {
+                if d1 > d2 { return sortdirection } else { return !sortdirection }
             }
+            return false
         }
         return sorted
     }
 
-    func filterbystring(filterby: Sortandfilter) -> String {
-        switch filterby {
+    func filterbystring(filterby: Sortandfilter?) -> String {
+        switch filterby ?? .none {
         case .localcatalog:
-            return "localCatalog"
+            return DictionaryStrings.localCatalog.rawValue
         case .profile:
-            return "profile"
+            return DictionaryStrings.profile.rawValue
         case .offsitecatalog:
-            return "offsiteCatalog"
+            return DictionaryStrings.offsiteCatalog.rawValue
         case .offsiteserver:
-            return "offsiteServer"
+            return DictionaryStrings.offsiteServer.rawValue
         case .task:
-            return "task"
+            return DictionaryStrings.task.rawValue
         case .backupid:
-            return "backupID"
+            return DictionaryStrings.backupID.rawValue
         case .numberofdays:
-            return "daysID"
+            return DictionaryStrings.daysID.rawValue
         case .executedate:
-            return "dateExecuted"
+            return DictionaryStrings.dateExecuted.rawValue
+        default:
+            return ""
         }
     }
-}
-
-protocol Allerrors: class {
-    func allerrors(outputprocess: OutputProcess?)
-    func getoutputerrors() -> OutputErrors?
 }

@@ -7,30 +7,27 @@
 //
 // swiftlint:disable line_length
 
-import Foundation
 import Cocoa
+import Foundation
 
 // Protocol for progress indicator
-protocol CountRemoteEstimatingNumberoftasks: class {
+protocol CountRemoteEstimatingNumberoftasks: AnyObject {
     func maxCount() -> Int
     func inprogressCount() -> Int
 }
 
 class ViewControllerEstimatingTasks: NSViewController, Abort, SetConfigurations, SetDismisser {
-
-    var count: Double = 0
-    var maxcount: Double = 0
-    var calculatedNumberOfFiles: Int?
-
     weak var countDelegate: CountRemoteEstimatingNumberoftasks?
     private var remoteinfotask: RemoteinfoEstimation?
     var diddissappear: Bool = false
 
-    @IBOutlet weak var abort: NSButton!
-    @IBOutlet weak var progress: NSProgressIndicator!
+    @IBOutlet var abort: NSButton!
+    @IBOutlet var progress: NSProgressIndicator!
 
-    @IBAction func abort(_ sender: NSButton) {
+    @IBAction func abort(_: NSButton) {
+        self.remoteinfotask?.abort()
         self.abort()
+        self.remoteinfotask = nil
         self.closeview()
     }
 
@@ -43,13 +40,16 @@ class ViewControllerEstimatingTasks: NSViewController, Abort, SetConfigurations,
         super.viewDidAppear()
         guard self.diddissappear == false else { return }
         self.abort.isEnabled = true
-        self.remoteinfotask = RemoteinfoEstimation(viewvcontroller: self)
+        self.remoteinfotask = RemoteinfoEstimation(viewcontroller: self, processtermination: self.processtermination)
         self.initiateProgressbar()
     }
 
     override func viewWillDisappear() {
         super.viewWillDisappear()
         self.diddissappear = true
+        // Release the estimating object
+        self.remoteinfotask?.abort()
+        self.remoteinfotask = nil
     }
 
     // Progress bars
@@ -71,37 +71,27 @@ class ViewControllerEstimatingTasks: NSViewController, Abort, SetConfigurations,
             self.dismissview(viewcontroller: self, vcontroller: .vctabschedule)
         } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
             self.dismissview(viewcontroller: self, vcontroller: .vcnewconfigurations)
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vccopyfiles)
+        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
+            self.dismissview(viewcontroller: self, vcontroller: .vcrestore)
         } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
             self.dismissview(viewcontroller: self, vcontroller: .vcsnapshot)
         } else if (self.presentingViewController as? ViewControllerSsh) != nil {
             self.dismissview(viewcontroller: self, vcontroller: .vcssh)
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            self.dismissview(viewcontroller: self, vcontroller: .vcverify)
         } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
             self.dismissview(viewcontroller: self, vcontroller: .vcloggdata)
         }
     }
 }
 
-extension ViewControllerEstimatingTasks: UpdateProgress {
-    func processTermination() {
+extension ViewControllerEstimatingTasks {
+    func processtermination() {
         let progress = Double(self.remoteinfotask?.maxCount() ?? 0) - Double(self.remoteinfotask?.inprogressCount() ?? 0)
         self.updateProgressbar(progress)
-    }
-
-    func fileHandler() {
-     //
     }
 }
 
 extension ViewControllerEstimatingTasks: StartStopProgressIndicator {
     func start() {
-        //
-    }
-
-    func complete() {
         //
     }
 
@@ -113,12 +103,8 @@ extension ViewControllerEstimatingTasks: StartStopProgressIndicator {
             openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vctabschedule) as? ViewControllerSchedule
         } else if (self.presentingViewController as? ViewControllerNewConfigurations) != nil {
             openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcnewconfigurations) as? ViewControllerNewConfigurations
-        } else if (self.presentingViewController as? ViewControllerCopyFiles) != nil {
-            openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vccopyfiles) as? ViewControllerCopyFiles
-        } else if (self.presentingViewController as? ViewControllerSsh) != nil {
-            openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcssh) as? ViewControllerSsh
-        } else if (self.presentingViewController as? ViewControllerVerify) != nil {
-            openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcverify) as? ViewControllerVerify
+        } else if (self.presentingViewController as? ViewControllerRestore) != nil {
+            openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcrestore) as? ViewControllerRestore
         } else if (self.presentingViewController as? ViewControllerLoggData) != nil {
             openDelegate = ViewControllerReference.shared.getvcref(viewcontroller: .vcloggdata) as? ViewControllerLoggData
         } else if (self.presentingViewController as? ViewControllerSnapshots) != nil {
